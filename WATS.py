@@ -10,14 +10,15 @@ class database(object):
         self.dab = QSqlDatabase.addDatabase("QSQLITE")    
         self.dab.setDatabaseName(name)
         self.query = QSqlQuery()
-    def setConnection(self, username =0 , password = 0):
+    def setConnection(self, username = 0, password = 0):
         if username != 0:
             self.dab.setUsername(username)
         if password != 0 :
             self.dab.setPassword(password)
         return self.dab.open()
     def addRecord(self, record):
-        self.query.exec_('insert into '+ self.name+ ' (name) values (' + record + ')')
+        if self.dab.isOpen():
+            return self.query.exec_('insert into test values(2,"zaaazazaz")')
 
 
 
@@ -33,16 +34,7 @@ class GUI(QMainWindow):
         self.initializeModel(self.sqlmodel, 'test')
         self.sqlview = self.createView(self.sqlmodel)
 
-    def initializeMenu(self):
-        self.dbConAct.triggered.connect(self.connectTrigger)
-        self.dbAdd.triggered.connect(self.db.addRecord)
-
-        self.statusBar()
-        self.menu = self.menuBar()
-        self.filemenu = self.menu.addMenu('&File')
-        self.filemenu.addAction(self.dbConAct)
-        self.filemenu.addAction(self.dbAdd)
-
+    ##Main output function
     def draw(self):
 
         self.setCentralWidget(self.sqlview)
@@ -50,17 +42,40 @@ class GUI(QMainWindow):
         self.setWindowTitle('WATS?')
         self.show()
 
+  ##Functions handling menu buttons signals
+  #
+  # #"Connect" button
     def connectTrigger(self):
         self.connected = self.db.setConnection()
         if self.connected:
             label = 'Yeahaaaaa'
         else:
             label = 'Oh Shit'
-        #self.statusBar().showMessage(label)
+        self.statusBar().showMessage(label)
         query = QSqlQuery()
         query.exec_('create table test(id int primary key auto increment, lol varchar(20))')
         query.exec_('insert into test values(1, "zaaazazaz")')
 
+    # "Add record" button
+    def addRecord(self):
+        self. aRDText, self.aRDSuccess = QInputDialog.getText(self,'Add a record', 'Enter the name:')
+
+        if self.aRDSuccess:
+            self.db.addRecord(self.aRDText)
+            self.statusBar().showMessage(str(QSqlQuery.lastError(self.db.query)))
+
+    def initializeMenu(self):
+        self.dbConAct.triggered.connect(self.connectTrigger)
+        self.dbAdd.triggered.connect(self.addRecord)
+
+        self.statusBar()
+        self.menu = self.menuBar()
+        self.filemenu = self.menu.addMenu('&File')
+        self.filemenu.addAction(self.dbConAct)
+        self.filemenu.addAction(self.dbAdd)
+  #
+  #
+  ## <End> Functions handling  menu buttons signals
 
     def initializeModel(self, model, name):
         model.setTable(name)
