@@ -3,29 +3,25 @@ from PySide.QtGui import *
 from PySide.QtSql import * 
 import sys
 
-class database(object):
-    dab = QSqlDatabase()
-    def __init__(self, name):
-        self.name = name
-        self.dab = QSqlDatabase.addDatabase("QSQLITE")    
-        self.dab.setDatabaseName(name)
-        self.query = QSqlQuery()
-    def setConnection(self, username = 0, password = 0):
+def setConnection(username = 0, password = 0):
+        dab = QSqlDatabase.addDatabase("QSQLITE")
+        dab.setDatabaseName('test')
         if username != 0:
-            self.dab.setUsername(username)
+            dab.setUsername(username)
         if password != 0 :
-            self.dab.setPassword(password)
-        return self.dab.open()
-    def addRecord(self, record):
-        if self.dab.isOpen():
-            return self.query.exec_('insert into test values(2,"zaaazazaz")')
+            dab.setPassword(password)
+        return dab.open()
+def addRecord(record):
+        query = QSqlQuery()
+        return query.exec_('INSERT INTO test VALUES(2,"zaaazazaz")')
+
 
 
 
 class GUI(QMainWindow):
     def __init__(self):
         super(GUI, self).__init__()
-        self.db = database('test')
+
         # actions fro working with database
         self.dbConAct = QAction('Connect', self)
         self.dbAdd = QAction('Add a record', self)
@@ -46,7 +42,7 @@ class GUI(QMainWindow):
   #
   # #"Connect" button
     def connectTrigger(self):
-        self.connected = self.db.setConnection()
+        self.connected = setConnection()
         if self.connected:
             label = 'Yeahaaaaa'
         else:
@@ -61,8 +57,8 @@ class GUI(QMainWindow):
         self. aRDText, self.aRDSuccess = QInputDialog.getText(self,'Add a record', 'Enter the name:')
 
         if self.aRDSuccess:
-            self.db.addRecord(self.aRDText)
-            self.statusBar().showMessage(str(QSqlQuery.lastError(self.db.query)))
+
+            self.statusBar().showMessage(str(addRecord(self.aRDText)))
 
     def initializeMenu(self):
         self.dbConAct.triggered.connect(self.connectTrigger)
