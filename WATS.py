@@ -10,12 +10,19 @@ def setConnection(username = 0, password = 0):
             dab.setUsername(username)
         if password != 0 :
             dab.setPassword(password)
-        return dab.open()
+        if not dab.open():
+            return False
+        query = QSqlQuery()
+        query.exec_('create table test(lol varchar(20))')
+        return True
 def addRecord(record):
         query = QSqlQuery()
-        return query.exec_('INSERT INTO test VALUES(2,"zaaazazaz")')
-
-
+        request = 'INSERT INTO test VALUES("' + record + '")'
+        return query.exec_(request)
+def delRecord(row):
+    query = QSqlQuery()
+    request = 'DELETE FROM test WHERE rowid =' + row
+    return query.exec_(request)
 
 
 class GUI(QMainWindow):
@@ -25,13 +32,14 @@ class GUI(QMainWindow):
         # actions fro working with database
         self.dbConAct = QAction('Connect', self)
         self.dbAdd = QAction('Add a record', self)
-
+        self.dbDel = QAction('Delete a record', self)
+    ##Main output function
+    def draw(self):
+        ## Assigned here because models should be created after database connection
         self.sqlmodel = QSqlTableModel()
         self.initializeModel(self.sqlmodel, 'test')
         self.sqlview = self.createView(self.sqlmodel)
 
-    ##Main output function
-    def draw(self):
 
         self.setCentralWidget(self.sqlview)
         self.setGeometry(200, 200, 300, 200)
@@ -48,27 +56,29 @@ class GUI(QMainWindow):
         else:
             label = 'Oh Shit'
         self.statusBar().showMessage(label)
-        query = QSqlQuery()
-        query.exec_('create table test(id int primary key auto increment, lol varchar(20))')
-        query.exec_('insert into test values(1, "zaaazazaz")')
 
     # "Add record" button
     def addRecord(self):
         self. aRDText, self.aRDSuccess = QInputDialog.getText(self,'Add a record', 'Enter the name:')
-
         if self.aRDSuccess:
-
             self.statusBar().showMessage(str(addRecord(self.aRDText)))
+
+    # 'Delete record' button
+    def delRecord(self):
+        self. dRDText, self.dRDSuccess = QInputDialog.getText(self,'Delete a record', 'Enter the row:')
+        if self.dRDSuccess:
+            self.statusBar().showMessage(str(delRecord(self.dRDText)))
 
     def initializeMenu(self):
         self.dbConAct.triggered.connect(self.connectTrigger)
         self.dbAdd.triggered.connect(self.addRecord)
-
+        self.dbDel.triggered.connect(self.delRecord)
         self.statusBar()
         self.menu = self.menuBar()
         self.filemenu = self.menu.addMenu('&File')
         self.filemenu.addAction(self.dbConAct)
         self.filemenu.addAction(self.dbAdd)
+        self.filemenu.addAction(self.dbDel)
   #
   #
   ## <End> Functions handling  menu buttons signals
