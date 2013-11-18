@@ -4,6 +4,21 @@ import sys
 from database import *
 import random
 
+class MainTable(QTableWidget):
+    def __init__(self):
+        super(MainTable, self).__init__()
+        self.setRowCount(48)
+        self.setColumnCount(7)
+        rowsheaders = []
+        for i in range(0, 1440, 30):
+            hours = i//60
+            minutes = i - hours*60
+            hours = '0' + str(hours)
+            minutes = '0' + str(minutes)
+            hours = hours[-2:]
+            minutes = minutes[-2:]
+            rowsheaders.append(str(hours) + ':' + str(minutes))
+        self.setVerticalHeaderLabels(rowsheaders)
 class sqlModel(QSqlTableModel):
     def __init__(self):
         super(sqlModel, self).__init__()
@@ -65,9 +80,9 @@ class Layout(QWidget):
         return result
 
 
-class GUI(QMainWindow):
+class MainWindow(QMainWindow):
     def __init__(self):
-        super(GUI, self).__init__()
+        super(MainWindow, self).__init__()
         self.connected = False
         # actions fro working with database
         self.dbConAct = QAction('Connect', self)
@@ -132,7 +147,7 @@ class GUI(QMainWindow):
 def main():
     app = QApplication(sys.argv)
 
-    mainGui = GUI()
+    mainGui = MainWindow()
     mainGui.initializeMenu()
     mainGui.draw()
     sys.exit(app.exec_()) 
