@@ -2,69 +2,52 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 import sys
 from database import *
-import random
+from maintable import *
 
-class MainTable(QTableWidget):
-    def __init__(self):
-        super(MainTable, self).__init__()
-        self.setRowCount(48)
-        self.setColumnCount(7)
-        rowsheaders = []
-        for i in range(0, 1440, 30):
-            hours = i//60
-            minutes = i - hours*60
-            hours = '0' + str(hours)
-            minutes = '0' + str(minutes)
-            hours = hours[-2:]
-            minutes = minutes[-2:]
-            rowsheaders.append(str(hours) + ':' + str(minutes))
-        self.setVerticalHeaderLabels(rowsheaders)
-class sqlModel(QSqlTableModel):
-    def __init__(self):
-        super(sqlModel, self).__init__()
-
-    def initializeModel(self, name):
-        self.setTable(name)
-        self.setEditStrategy(QSqlTableModel.OnRowChange)
-        self.select()
-        self.setHeaderData(0, Qt.Horizontal, "id")
-        self.setHeaderData(1, Qt.Horizontal, "lol")
-
-
-class sqlView(QTableView):
-    def __init__(self):
-        super(sqlView,self).__init__()
-
-    def createView(self, model):
-        self.setModel(model)
+#class sqlModel(QSqlTableModel):
+#    def __init__(self):
+#        super(sqlModel, self).__init__()
+#
+#    def initializeModel(self, name):
+#        self.setTable(name)
+#        self.setEditStrategy(QSqlTableModel.OnRowChange)
+#        self.select()
+#        self.setHeaderData(0, Qt.Horizontal, "id")
+#        self.setHeaderData(1, Qt.Horizontal, "lol")
+#
+#
+#class sqlView(QTableView):
+#    def __init__(self):
+#        super(sqlView,self).__init__()
+#
+#    def createView(self, model):
+#        self.setModel(model)
 
 
 class Layout(QWidget):
     def __init__(self):
         super(Layout, self).__init__()
-        self.sqlmodel = sqlModel()
-        self.sqlview = sqlView()
+        self.frame = QFrame(self)
+        self.frame1 = QFrame(self)
+        self.frame.setFrameShape(QFrame.StyledPanel)
+        self.table = MainTable(15021997)
         ##Layouts
         self.hb = QHBoxLayout()
         self.vb = QVBoxLayout()
-
-        ## Buttons
-        self.addB = QPushButton('Add')
-        self.delB = QPushButton('Delete')
-
+        ## Splitters
+        self.vsplitter = QSplitter()
+        self.bottomsplitter = QSplitter(Qt.Vertical)
     def create(self):
-        self.sqlmodel = sqlModel()
-        self.sqlmodel.initializeModel('test')
-        self.sqlview.createView(self.sqlmodel)
 
-        self.hb.addWidget(self.addB)
-        self.hb.addWidget(self.delB)
+        self.vsplitter.addWidget(self.frame)
+        self.vsplitter.addWidget(self.table)
 
-        self.vb.addWidget(self.sqlview)
-        self.vb.addLayout(self.hb)
+        self.bottomsplitter.addWidget(self.vsplitter)
+        self.bottomsplitter.addWidget(self.frame1)
+
+        self.vb.addWidget(self.bottomsplitter)
         self.setLayout(self.vb)
 
-        self.addB.clicked.connect(self.addRecord)
     def update(self):
         self.sqlmodel = sqlModel()
         self.sqlmodel.initializeModel('test')

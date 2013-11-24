@@ -9,7 +9,7 @@ def setConnection(username = 0, password = 0):
         if not dab.open():
             return False
         query = QSqlQuery()
-        query.exec_('create table test(lol varchar(20))')
+        query.exec_('create table records(task varchar, timestart int, date int, weekday varchar, priority)')
         return True
 def addRecord(record):
     query = QSqlQuery()
