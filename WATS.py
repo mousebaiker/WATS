@@ -3,6 +3,7 @@ from PySide.QtGui import *
 import sys
 from database import *
 from maintable import *
+from tasks_widget import *
 
 #class sqlModel(QSqlTableModel):
 #    def __init__(self):
@@ -27,9 +28,9 @@ from maintable import *
 class Layout(QWidget):
     def __init__(self):
         super(Layout, self).__init__()
-        self.frame = QFrame(self)
-        self.frame1 = QFrame(self)
-        self.frame.setFrameShape(QFrame.StyledPanel)
+        self.taskwidget = TasksWidget()
+        self.scrollarea = QScrollArea()
+        self.frame1 = QLabel(self)
         self.table = MainTable(15021997)
         ##Layouts
         self.hb = QHBoxLayout()
@@ -39,7 +40,10 @@ class Layout(QWidget):
         self.bottomsplitter = QSplitter(Qt.Vertical)
     def create(self):
 
-        self.vsplitter.addWidget(self.frame)
+        self.scrollarea.setWidget(self.taskwidget)
+        self.scrollarea.setWidgetResizable(True)
+
+        self.vsplitter.addWidget(self.scrollarea)
         self.vsplitter.addWidget(self.table)
 
         self.bottomsplitter.addWidget(self.vsplitter)
@@ -62,6 +66,27 @@ class Layout(QWidget):
         self.update()
         return result
 
+    def mousePressEvent(self, event):
+        if event.buttons() != Qt.RightButton:
+            return
+        position = event.pos()
+        if self.taskwidget.isItemAtPoint(position):
+            self.dragging = True
+            self.dragtext = self.taskwidget.getText(position)
+
+
+    def mouseReleaseEvent(self, event):
+        if event.button() != Qt.RightButton:
+            self.frame1.setText(self.dragtext)
+            return
+
+        if self.dragging:
+            position = event.pos()
+            self.frame1.setText(str(position))
+            if self.table.itemAt(position) is not None:
+                self.table.itemAt(position).setText(self.dragtext)
+
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -79,7 +104,7 @@ class MainWindow(QMainWindow):
         self.mainLayout.create()
         #self.setCentralWidget(self.sqlview)
         self.setCentralWidget(self.mainLayout)
-        self.setGeometry(200, 200, 500, 300)
+        self.showMaximized()
         self.setWindowTitle('WATS?')
         self.show()
 

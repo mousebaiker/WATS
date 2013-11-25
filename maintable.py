@@ -1,6 +1,8 @@
-import PySide.QtGui
-class MainTable(PySide.QtGui.QTableWidget):
-    def __init__(self,date):
+from PySide.QtGui import *
+
+
+class MainTable(QTableWidget):
+    def __init__(self, date):
         super(MainTable, self).__init__()
         self.date = date
         self.setRowCount(48)
@@ -17,4 +19,4 @@ class MainTable(PySide.QtGui.QTableWidget):
             rowsheaders.append(str(hours) + ':' + str(minutes))
         self.setVerticalHeaderLabels(rowsheaders)
         self.setHorizontalHeaderLabels(columnheaders)
-
+        self.acceptDrops()

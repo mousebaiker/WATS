@@ -1,4 +1,6 @@
 from PySide.QtSql import *
+
+
 def setConnection(username = 0, password = 0):
         dab = QSqlDatabase.addDatabase("QSQLITE")
         dab.setDatabaseName('test')
