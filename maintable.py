@@ -19,4 +19,9 @@ class MainTable(QTableWidget):
             rowsheaders.append(str(hours) + ':' + str(minutes))
         self.setVerticalHeaderLabels(rowsheaders)
         self.setHorizontalHeaderLabels(columnheaders)
+        for i in range(len(rowsheaders)):
+            for c in range(len(columnheaders)):
+                newItem = QTableWidgetItem()
+                self.setItem(i,c,newItem)
+
         self.acceptDrops()

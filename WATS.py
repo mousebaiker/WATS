@@ -69,22 +69,25 @@ class Layout(QWidget):
     def mousePressEvent(self, event):
         if event.buttons() != Qt.RightButton:
             return
-        position = event.pos()
-        if self.taskwidget.isItemAtPoint(position):
+        self.rightclickpos = event.pos()
+        if self.taskwidget.isItemAtPoint(self.rightclickpos):
             self.dragging = True
-            self.dragtext = self.taskwidget.getText(position)
+            self.dragtext = self.taskwidget.getText(self.rightclickpos)
+            self.taskwidget.pushLabel(self.taskwidget.itemAtPoint(self.rightclickpos))
 
 
     def mouseReleaseEvent(self, event):
         if event.button() != Qt.RightButton:
             self.frame1.setText(self.dragtext)
             return
-
+        self.taskwidget.unpushLabel(self.taskwidget.itemAtPoint(self.rightclickpos))
         if self.dragging:
-            position = event.pos()
+            position = event.pos() - QPoint(self.taskwidget.geometry().width() + 30, 25)
             self.frame1.setText(str(position))
             if self.table.itemAt(position) is not None:
                 self.table.itemAt(position).setText(self.dragtext)
+        self.dragging = False
+
 
 
 

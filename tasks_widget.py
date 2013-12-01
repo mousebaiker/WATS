@@ -45,3 +45,8 @@ class TasksWidget(QWidget):
             if item.widget() != 0:
                 return item.widget().text()
         return ''
+    def pushLabel(self, item):
+        item.widget().setFrameStyle(QFrame.Panel | QFrame.Sunken)
+
+    def unpushLabel(self, item):
+        item.widget().setFrameStyle(QFrame.Panel | QFrame.Raised)
