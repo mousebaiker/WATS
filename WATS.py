@@ -1,5 +1,4 @@
 from PySide.QtCore import *
-from PySide.QtGui import *
 import sys
 from database import *
 from maintable import *
@@ -32,12 +31,13 @@ class Layout(QWidget):
         self.scrollarea = QScrollArea()
         self.frame1 = QLabel(self)
         self.table = MainTable(15021997)
-        ##Layouts
-        self.hb = QHBoxLayout()
+        ##Layouts        self.hb = QHBoxLayout()
         self.vb = QVBoxLayout()
         ## Splitters
         self.vsplitter = QSplitter()
         self.bottomsplitter = QSplitter(Qt.Vertical)
+
+        self.dragging = False
     def create(self):
 
         self.scrollarea.setWidget(self.taskwidget)
@@ -57,6 +57,8 @@ class Layout(QWidget):
         self.sqlmodel.initializeModel('test')
         self.sqlview.createView(self.sqlmodel)
 
+
+    ### THESE 2 FUNCTIONS SHOULD BE REDONE!!!
     def addRecord(self):
         addRecord(str(random.random()))
         self.update()
@@ -80,8 +82,8 @@ class Layout(QWidget):
         if event.button() != Qt.RightButton:
             self.frame1.setText(self.dragtext)
             return
-        self.taskwidget.unpushLabel(self.taskwidget.itemAtPoint(self.rightclickpos))
         if self.dragging:
+            self.taskwidget.unpushLabel(self.taskwidget.itemAtPoint(self.rightclickpos))
             position = event.pos() - QPoint(self.taskwidget.geometry().width() + 30, 25)
             self.frame1.setText(str(position))
             if self.table.itemAt(position) is not None:
@@ -101,6 +103,7 @@ class MainWindow(QMainWindow):
         self.dbDel = QAction('Delete a record', self)
 
         self.mainLayout = Layout()
+
     ##Main output function
     def draw(self):
         ## Models should be created after database connection
@@ -123,6 +126,7 @@ class MainWindow(QMainWindow):
             label = 'Oh Shit'
         self.statusBar().showMessage(label)
 
+    ### THESE 2 FUNCTIONS SHOULD BE REDONE!!!
     # "Add record" button
     def addRecord(self):
         if self.connected:

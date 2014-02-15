@@ -1,4 +1,7 @@
 from PySide.QtGui import *
+from PySide.QtCore import QSize
+from dialogs import *
+
 class Task(object):
     def __init__(self, task, priority):
         self.task = task
@@ -58,19 +61,44 @@ class TasksWidget(QWidget):
 
         self.mainLayout = QGridLayout()
 
+        self.toolbarLayout = QHBoxLayout()
+
+        self.addGroupIcon = QIcon('icons/add.png')
+        self.addGroupButton = QToolButton()
+        self.addGroupButton.setIcon(self.addGroupIcon)
+        self.addGroupButton.setIconSize(QSize(16, 16))
+        self.addGroupButton.clicked.connect(self.addGroupPush)
+
+
+        self.delGroupIcon = QIcon('icons/del.png')
+        self.delGroupIcon.Mode(QIcon.Normal)
+        self.delGroupButton = QToolButton()
+        self.delGroupButton.setIcon(self.delGroupIcon)
+        self.delGroupButton.setIconSize(QSize(16, 16))
+
+        self.toolbarLayout.addStretch(1)
+        self.toolbarLayout.addWidget(self.addGroupButton)
+        self.toolbarLayout.addWidget(self.delGroupButton)
+
+        self.widgetLayout = QVBoxLayout()
+        self.widgetLayout.addLayout(self.mainLayout)
+        self.widgetLayout.addStretch(1)
+        self.widgetLayout.addLayout(self.toolbarLayout)
         ##list of labels - tasks
         self.groups = []
 
+        self.show()
     def show(self):
         count = 0
-        for task in self.tasks:
+        for task in self.groups:
             label = QLabel(task)
             label.setFrameStyle(QFrame.Panel | QFrame.Raised)
             label.setMidLineWidth(3)
             label.setMaximumHeight(35)
-            self.mainLayout.addWidget(label, count % 25, count//25 )
+            self.mainLayout.addWidget(label, count % 25, count//25)
             count += 1
-        self.setLayout(self.mainLayout)
+
+        self.setLayout(self.widgetLayout)
 
     ##Drag and drop
 
@@ -124,7 +152,7 @@ class TasksWidget(QWidget):
                 group.addTask(Task(taskname, priority))
 
 
-    def delTask(self,groupname,tasname):
+    def delTask(self,groupname,taskname):
         for group in self.groups:
             if groupname == group.getName():
                 for task in group:
@@ -132,3 +160,13 @@ class TasksWidget(QWidget):
                         group.delTask(task)
                         return
         raise NameError
+
+    def addTaskPush(self):
+        dialog = addTaskDialog(self.groups)
+        dialog.exec_()
+
+    def addGroupPush(self):
+        dialog = addGroupDialog()
+        dialog.exec_()
+
+
