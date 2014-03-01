@@ -4,30 +4,10 @@ from database import *
 from maintable import *
 from tasks_widget import *
 
-#class sqlModel(QSqlTableModel):
-#    def __init__(self):
-#        super(sqlModel, self).__init__()
-#
-#    def initializeModel(self, name):
-#        self.setTable(name)
-#        self.setEditStrategy(QSqlTableModel.OnRowChange)
-#        self.select()
-#        self.setHeaderData(0, Qt.Horizontal, "id")
-#        self.setHeaderData(1, Qt.Horizontal, "lol")
-#
-#
-#class sqlView(QTableView):
-#    def __init__(self):
-#        super(sqlView,self).__init__()
-#
-#    def createView(self, model):
-#        self.setModel(model)
-
-
 class Layout(QWidget):
     def __init__(self):
         super(Layout, self).__init__()
-        self.taskwidget = TasksWidget()
+        self.taskwidget = TasksWidget([])
         self.scrollarea = QScrollArea()
         self.frame1 = QLabel(self)
         self.table = MainTable(15021997)
@@ -38,8 +18,15 @@ class Layout(QWidget):
         self.bottomsplitter = QSplitter(Qt.Vertical)
 
         self.dragging = False
-    def create(self):
+        self.dragtext = ''
 
+    def initTasks(self):
+        statuses = getStatuses()
+        self.taskwidget.setGroups(statuses)
+        self.taskwidget.update()
+
+
+    def create(self):
         self.scrollarea.setWidget(self.taskwidget)
         self.scrollarea.setWidgetResizable(True)
 
@@ -52,22 +39,6 @@ class Layout(QWidget):
         self.vb.addWidget(self.bottomsplitter)
         self.setLayout(self.vb)
 
-    def update(self):
-        self.sqlmodel = sqlModel()
-        self.sqlmodel.initializeModel('test')
-        self.sqlview.createView(self.sqlmodel)
-
-
-    ### THESE 2 FUNCTIONS SHOULD BE REDONE!!!
-    def addRecord(self):
-        addRecord(str(random.random()))
-        self.update()
-
-    def delRecord(self, row):
-        result = self.sqlmodel.removeRow(int(row - 1))
-        self.update()
-        return result
-
     def mousePressEvent(self, event):
         if event.buttons() != Qt.RightButton:
             return
@@ -75,15 +46,13 @@ class Layout(QWidget):
         if self.taskwidget.isItemAtPoint(self.rightclickpos):
             self.dragging = True
             self.dragtext = self.taskwidget.getText(self.rightclickpos)
-            self.taskwidget.pushLabel(self.taskwidget.itemAtPoint(self.rightclickpos))
+
 
 
     def mouseReleaseEvent(self, event):
         if event.button() != Qt.RightButton:
-            self.frame1.setText(self.dragtext)
             return
         if self.dragging:
-            self.taskwidget.unpushLabel(self.taskwidget.itemAtPoint(self.rightclickpos))
             position = event.pos() - QPoint(self.taskwidget.geometry().width() + 30, 25)
             self.frame1.setText(str(position))
             if self.table.itemAt(position) is not None:
@@ -108,7 +77,6 @@ class MainWindow(QMainWindow):
     def draw(self):
         ## Models should be created after database connection
         self.mainLayout.create()
-        #self.setCentralWidget(self.sqlview)
         self.setCentralWidget(self.mainLayout)
         self.showMaximized()
         self.setWindowTitle('WATS?')
@@ -121,38 +89,18 @@ class MainWindow(QMainWindow):
         self.connected = setConnection()
         if self.connected:
             label = 'Yeahaaaaa'
-            self.mainLayout.update()
+            self.mainLayout.initTasks()
         else:
             label = 'Oh Shit'
         self.statusBar().showMessage(label)
 
-    ### THESE 2 FUNCTIONS SHOULD BE REDONE!!!
-    # "Add record" button
-    def addRecord(self):
-        if self.connected:
-            self. aRDText, self.aRDSuccess = QInputDialog.getText(self,'Add a record', 'Enter the name:')
-            if self.aRDSuccess:
-                self.statusBar().showMessage(str(addRecord(self.aRDText)))
-        self.mainLayout.update()
-
-    # 'Delete record' button
-    def delRecord(self):
-        if self.connected:
-            self. dRDText, self.dRDSuccess = QInputDialog.getText(self, 'Delete a record', 'Enter the row:')
-            if self.dRDSuccess:
-                self.statusBar().showMessage(str(self.mainLayout.delRecord(int(self.dRDText))))
-        self.mainLayout.update()
-
     def initializeMenu(self):
         self.dbConAct.triggered.connect(self.connectTrigger)
-        self.dbAdd.triggered.connect(self.addRecord)
-        self.dbDel.triggered.connect(self.delRecord)
         self.statusBar()
         self.menu = self.menuBar()
         self.filemenu = self.menu.addMenu('&File')
         self.filemenu.addAction(self.dbConAct)
-        self.filemenu.addAction(self.dbAdd)
-        self.filemenu.addAction(self.dbDel)
+
   #
   #
   ## <End> Functions handling  menu buttons signals

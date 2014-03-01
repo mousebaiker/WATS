@@ -10,14 +10,31 @@ def setConnection(username = 0, password = 0):
             dab.setPassword(password)
         if not dab.open():
             return False
+        time = ''
+        for i in range(0, 1440, 30):
+            hours = i//60
+            minutes = i - hours*60
+            hours = '0' + str(hours)
+            minutes = '0' + str(minutes)
+            hours = hours[-2:]
+            minutes = minutes[-2:]
+            time = time + ' "' + str(hours) + ':' + str(minutes) + '" int,'
+        time = time[:-1]
+        q_main = 'CREATE TABLE main(id int unique, weekday varchar,' + time + ')'
         query = QSqlQuery()
-        query.exec_('create table records(task varchar, timestart int, date int, weekday varchar, priority)')
+        query.exec_(q_main)
+
+        q_task = 'CREATE TABLE tasks(id int unique, name varchar, status int)'
+        query.exec_(q_task)
+
+        q_status = 'CREATE TABLE status(id int unique, name varchar, comments text)'
+        query.exec_(q_status)
         return True
-def addRecord(record):
-    query = QSqlQuery()
-    request = 'INSERT INTO test VALUES("' + record + '")'
-    return query.exec_(request)
-def delRecord(row):
-    query = QSqlQuery()
-    request = 'DELETE FROM test WHERE rowid =' + row
-    return query.exec_(request)
+
+def getStatuses():
+    q = 'SELECT name FROM status'
+    query = QSqlQuery(q)
+    result = []
+    while query.next():
+        result.append(query.value(0))
+    return result

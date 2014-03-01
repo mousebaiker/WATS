@@ -1,5 +1,5 @@
 from PySide.QtGui import *
-from PySide.QtCore import QSize
+from PySide.QtCore import QSize, QLine
 from dialogs import *
 
 class Task(object):
@@ -29,7 +29,7 @@ class TaskGroup(object):
         self.priority = priority
 
     def __repr__(self):
-        return self.name , self.tasks, self.priority
+        return self.name, self.tasks, self.priority
 
     def __iter__(self):
         return self.tasks.__iter__()
@@ -44,15 +44,42 @@ class TaskGroup(object):
     def getName(self):
         return self.name
 
+    def setName(self, name):
+        self.name = name
+
     def getTasks(self):
         return self.tasks
 
     def getPriority(self):
         return self.priority
 
+    def setPriority(self,priority):
+        self.priority = priority
+
+class TaskGroupWidget(QWidget):
+    def __init__(self, name, priority):
+        super(TaskGroupWidget, self).__init__()
+
+        self.nameLabel = QLabel(name)
+        self.priorityLabel = QLabel(priority)
+
+
+        self.mainlayout = QHBoxLayout()
+        self.mainlayout.addWidget(self.nameLabel)
+        self.mainlayout.addStretch(1)
+        self.mainlayout.addWidget(self.priorityLabel)
+
+        self.setLayout(self.mainlayout)
+
+        self.nameLabel.setFrameStyle(QFrame.StyledPanel)
+        self.nameLabel.setFrameShadow(QFrame.Raised)
+    def text(self):
+        return self.nameLabel.text()
+
+
 
 class TasksWidget(QWidget):
-    def __init__(self):
+    def __init__(self, groups):
         super(TasksWidget, self).__init__()
 
         ##main background
@@ -75,6 +102,7 @@ class TasksWidget(QWidget):
         self.delGroupButton = QToolButton()
         self.delGroupButton.setIcon(self.delGroupIcon)
         self.delGroupButton.setIconSize(QSize(16, 16))
+        #TODO Implement the group deleting system
 
         self.toolbarLayout.addStretch(1)
         self.toolbarLayout.addWidget(self.addGroupButton)
@@ -85,18 +113,18 @@ class TasksWidget(QWidget):
         self.widgetLayout.addStretch(1)
         self.widgetLayout.addLayout(self.toolbarLayout)
         ##list of labels - tasks
-        self.groups = []
+        self.groups = groups
 
-        self.show()
-    def show(self):
-        count = 0
-        for task in self.groups:
-            label = QLabel(task)
-            label.setFrameStyle(QFrame.Panel | QFrame.Raised)
-            label.setMidLineWidth(3)
-            label.setMaximumHeight(35)
-            self.mainLayout.addWidget(label, count % 25, count//25)
-            count += 1
+        self.update()
+
+    def update(self):
+        child = self.mainLayout.takeAt(0)
+        while child:
+            del child
+            child = self.mainLayout.takeAt(0)
+        for group in self.groups:
+            groupwidget = TaskGroupWidget(group.getName(), group.getPriority())
+            self.mainLayout.addWidget(groupwidget)
 
         self.setLayout(self.widgetLayout)
 
@@ -134,8 +162,8 @@ class TasksWidget(QWidget):
         for group in self.groups:
             if groupname == group.getName:
                 raise NameError
-        self.groups.append(TaskGroup(groupname,priority))
-
+        self.groups.append(TaskGroup(groupname, priority))
+        self.update()
     def delGroup(self, groupname):
         for group in self.groups:
             if groupname == group.getName():
@@ -168,5 +196,11 @@ class TasksWidget(QWidget):
     def addGroupPush(self):
         dialog = addGroupDialog()
         dialog.exec_()
-
-
+        if dialog.result() == QDialog.Accepted:
+            try:
+                self.addGroup(dialog.text.text(), dialog.priorities.currentText())
+            except NameError:
+                return
+                #TODO Raise an error window stating that group with such name already exist and return to previous state
+    def setGroups(self, groups):
+        self.groups = groups
