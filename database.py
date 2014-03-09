@@ -24,12 +24,13 @@ def setConnection(username = 0, password = 0):
         query = QSqlQuery()
         query.exec_(q_main)
 
-        q_task = 'CREATE TABLE tasks(id int unique, name varchar, status int)'
+        q_task = 'CREATE TABLE tasks(id int unique, name varchar, status varchar)'
         query.exec_(q_task)
 
         q_status = 'CREATE TABLE status(id int unique, name varchar, comments text)'
         query.exec_(q_status)
         return True
+
 
 def getStatuses():
     q = 'SELECT name FROM status'
@@ -38,3 +39,26 @@ def getStatuses():
     while query.next():
         result.append(query.value(0))
     return result
+
+
+def getTasks(status):
+    id ='SELECT rowid FROM status WHERE name ="'+status+'"'
+    query = QSqlQuery(id)
+    query.next()
+    id =str(query.value(0))
+    q = 'SELECT name FROM tasks WHERE status ="'+id+'"'
+    query = QSqlQuery(q)
+    result = []
+    while query.next():
+        result.append(query.value(0))
+    return result
+
+
+def truncate():
+    query = QSqlQuery('DELETE FROM main')
+    query.exec_()
+    query = QSqlQuery('DELETE FROM tasks')
+    query.exec_()
+    query = QSqlQuery('DELETE FROM status')
+    query.exec_()
+    pass

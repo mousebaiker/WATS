@@ -1,19 +1,13 @@
 from PySide.QtGui import *
-from PySide.QtCore import QSize
-## Pop-up window to add a dialog
-class addTaskDialog(QDialog):
-    def __init__(self, groups):
-        super(addTaskDialog, self).__init__()
-        priorval = [0,1,2,3]
+from PySide.QtCore import QPoint, QSize
 
+
+class addTaskDialog(QDialog):
+    def __init__(self):
+        super(addTaskDialog, self).__init__()
         self.label = QLabel('Add Task')
         self.text = QLineEdit()
-        self.groups = QComboBox()
-        for i in groups:
-            self.groups.addItem(i.getName())
-        self.priorities = QComboBox()
-        for i in priorval:
-            self.priorities.addItem(i)
+
         self.ok = QPushButton('OK')
         self.ok.clicked.connect(self.check)
         self.cancel = QPushButton('Cancel')
@@ -24,32 +18,56 @@ class addTaskDialog(QDialog):
         self.buttons.addWidget(self.ok)
         self.buttons.addWidget(self.cancel)
 
-
         self.mainLayout = QVBoxLayout()
         self.mainLayout.addWidget(self.label)
         self.mainLayout.addWidget(self.text)
-        self.mainLayout.addWidget(self.groups)
-        self.mainLayout.addWidget(self.priorities)
         self.mainLayout.addLayout(self.buttons)
 
         self.setLayout(self.mainLayout)
+        self.setWindowTitle('Add Task')
 
     def check(self):
         if self.text.text() != '':
             self.accept()
 
 
+class delTaskDialog(QDialog):
+    def __init__(self,tasks):
+        super(delTaskDialog, self).__init__()
+        self.label = QLabel('Delete Task')
+        self.params = QComboBox()
+        for task in tasks:
+            self.params.addItem(task.text())
+
+        self.ok = QPushButton('OK')
+        self.ok.clicked.connect(self.check)
+        self.cancel = QPushButton('Cancel')
+        self.cancel.clicked.connect(self.reject)
+
+        self.buttons = QHBoxLayout()
+        self.buttons.addStretch(1)
+        self.buttons.addWidget(self.ok)
+        self.buttons.addWidget(self.cancel)
+
+        self.mainLayout = QVBoxLayout()
+        self.mainLayout.addWidget(self.label)
+        self.mainLayout.addWidget(self.params)
+        self.mainLayout.addLayout(self.buttons)
+
+        self.setLayout(self.mainLayout)
+        self.setWindowTitle('Delete Task')
+
+    def check(self):
+        if self.params.currentText() != '':
+            self.accept()
+
 
 class addGroupDialog(QDialog):
     def __init__(self):
         super(addGroupDialog, self).__init__()
-        priorval = [0,1,2,3]
 
-        self.label = QLabel('Add Group')
+        self.label = QLabel('Add Status')
         self.text = QLineEdit()
-        self.priorities = QComboBox()
-        for i in priorval:
-            self.priorities.addItem(str(i))
         self.ok = QPushButton('OK')
         self.ok.clicked.connect(self.check)
         self.cancel = QPushButton('Cancel')
@@ -64,13 +82,43 @@ class addGroupDialog(QDialog):
         self.mainLayout = QVBoxLayout()
         self.mainLayout.addWidget(self.label)
         self.mainLayout.addWidget(self.text)
-        self.mainLayout.addWidget(self.priorities)
         self.mainLayout.addLayout(self.buttons)
 
         self.setLayout(self.mainLayout)
-        self.setWindowTitle('Add Group')
-        self.setFixedSize(QSize(300, 150))
+        self.setWindowTitle('Add Status')
 
     def check(self):
         if self.text.text() != '':
+            self.accept()
+
+class delGroupDialog(QDialog):
+    def __init__(self, groups):
+        super(delGroupDialog, self).__init__()
+
+        self.label = QLabel('Delete Status')
+
+        self.params = QComboBox()
+        for group in groups:
+            self.params.addItem(group.getName())
+        self.ok = QPushButton('OK')
+        self.ok.clicked.connect(self.check)
+        self.cancel = QPushButton('Cancel')
+        self.cancel.clicked.connect(self.reject)
+
+        self.buttons = QHBoxLayout()
+        self.buttons.addStretch(1)
+        self.buttons.addWidget(self.ok)
+        self.buttons.addWidget(self.cancel)
+
+
+        self.mainLayout = QVBoxLayout()
+        self.mainLayout.addWidget(self.label)
+        self.mainLayout.addWidget(self.params)
+        self.mainLayout.addLayout(self.buttons)
+
+        self.setLayout(self.mainLayout)
+        self.setWindowTitle('Delete Status')
+
+    def check(self):
+        if self.params.currentText() != '':
             self.accept()

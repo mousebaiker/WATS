@@ -4,13 +4,14 @@ from database import *
 from maintable import *
 from tasks_widget import *
 
+
 class Layout(QWidget):
     def __init__(self):
         super(Layout, self).__init__()
         self.taskwidget = TasksWidget([])
         self.scrollarea = QScrollArea()
         self.frame1 = QLabel(self)
-        self.table = MainTable(15021997)
+        self.table = MainTable(1)
         ##Layouts        self.hb = QHBoxLayout()
         self.vb = QVBoxLayout()
         ## Splitters
@@ -22,8 +23,15 @@ class Layout(QWidget):
 
     def initTasks(self):
         statuses = getStatuses()
-        self.taskwidget.setGroups(statuses)
-        self.taskwidget.update()
+        stats = []
+        for status in statuses:
+            group = TaskGroup(status)
+            tasks = getTasks(status)
+            for task in tasks:
+                group.addTask(Task(task))
+            stats.append(group)
+        self.taskwidget.setGroups(stats)
+        self.taskwidget.updateme()
 
 
     def create(self):
@@ -68,9 +76,7 @@ class MainWindow(QMainWindow):
         self.connected = False
         # actions fro working with database
         self.dbConAct = QAction('Connect', self)
-        self.dbAdd = QAction('Add a record', self)
-        self.dbDel = QAction('Delete a record', self)
-
+        self.saveAct = QAction('Save',self)
         self.mainLayout = Layout()
 
     ##Main output function
@@ -91,20 +97,75 @@ class MainWindow(QMainWindow):
             label = 'Yeahaaaaa'
             self.mainLayout.initTasks()
         else:
-            label = 'Oh Shit'
+            label = 'Oh, NO'
         self.statusBar().showMessage(label)
 
     def initializeMenu(self):
         self.dbConAct.triggered.connect(self.connectTrigger)
+        self.saveAct.triggered.connect(self.save)
         self.statusBar()
         self.menu = self.menuBar()
         self.filemenu = self.menu.addMenu('&File')
         self.filemenu.addAction(self.dbConAct)
+        self.filemenu.addAction(self.saveAct)
 
   #
   #
   ## <End> Functions handling  menu buttons signals
 
+    def save(self):
+    ## Saving tasks widget block
+        # if savePath == '':
+        #     # TODO File dialog for files
+        # else:
+        #     self.connectTrigger()
+
+        truncate()
+        groups = self.mainLayout.taskwidget.getGroups()
+
+        for group in groups:
+            query = QSqlQuery()
+            query.prepare("INSERT INTO status (name) VALUES (:name)")
+            query.bindValue(":name", group.getName())
+            query.exec_()
+
+            query = QSqlQuery("SELECT rowid FROM status WHERE name = '"+group.getName() + "' ")
+            query.next()
+            id_ = query.value(0)
+            print(str(id_))
+
+            for task in group:
+                query = QSqlQuery()
+                query.prepare("INSERT INTO tasks (name, status) VALUES (:name, :id)")
+                query.bindValue(":name", task.getTask())
+                query.bindValue(":id", id_)
+                query.exec_()
+    ################
+
+    ##Saving maintable block
+            weeknum = self.mainLayout.table.getWeeknum()
+            weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+            for weekday in weekdays:
+                tasks = self.mainLayout.table.getTasks(weekday)
+                if tasks:
+                    fields = ''
+                    values = ''
+                    for time in tasks:
+                        query = QSqlQuery("SELECT rowid FROM tasks WHERE name ='" + tasks[time] + "'")
+                        query.next()
+                        tasks[time] = query.value(0)
+                        fields += '"'+time +'"'+ ','
+                        values += str(tasks[time]) + ','
+                    fields = 'weekday,' + fields[:-1]
+                    values = '"'+weekday + '_' + str(weeknum)+ '"' + ', ' + values[:-1]
+                    request = 'INSERT INTO main (' + fields + ') VALUES (' + values + ')'
+                    print request
+                    query = QSqlQuery()
+                    query.exec_(request)
+                    print(query.lastError())
+
+
+    ################
 
 
 def main():

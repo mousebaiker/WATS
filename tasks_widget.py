@@ -1,14 +1,12 @@
-from PySide.QtGui import *
-from PySide.QtCore import QSize, QLine
 from dialogs import *
+from paths import *
 
 class Task(object):
-    def __init__(self, task, priority):
+    def __init__(self, task):
         self.task = task
-        self.priority = priority
 
     def __repr__(self):
-        return self.task, self.priority
+        return self.task
 
     def __eq__(self, other):
         return self.task == other
@@ -19,17 +17,14 @@ class Task(object):
     def getTask(self):
         return self.task
 
-    def getPriority(self):
-        return self.priority
 
 class TaskGroup(object):
-    def __init__(self, name, priority):
+    def __init__(self, name):
         self.name = name
         self.tasks = []
-        self.priority = priority
 
     def __repr__(self):
-        return self.name, self.tasks, self.priority
+        return self.name, self.tasks
 
     def __iter__(self):
         return self.tasks.__iter__()
@@ -39,7 +34,7 @@ class TaskGroup(object):
 
     def delTask(self, task):
         if task in self.tasks:
-            self.tasks.pop(task)
+            self.tasks.remove(task)
 
     def getName(self):
         return self.name
@@ -50,32 +45,67 @@ class TaskGroup(object):
     def getTasks(self):
         return self.tasks
 
-    def getPriority(self):
-        return self.priority
-
-    def setPriority(self,priority):
-        self.priority = priority
 
 class TaskGroupWidget(QWidget):
-    def __init__(self, name, priority):
+    def __init__(self, name):
         super(TaskGroupWidget, self).__init__()
+        self.name = name
 
-        self.nameLabel = QLabel(name)
-        self.priorityLabel = QLabel(priority)
+        self.groupCont = QGroupBox()
+        self.groupCont.setTitle(self.name)
+        self.groupContLayout = QVBoxLayout()
+        self.groupContLayout.addWidget(QLabel())
+        self.groupCont.setLayout(self.groupContLayout)
+        self.clear = True
+
+        self.addTaskButton = QToolButton()
+        self.addTaskIcon = QIcon(addTaskIconPath)
+        self.addTaskButton.setIcon(self.addTaskIcon)
+        self.addTaskButton.clicked.connect(self.addTaskPush)
+        self.delTaskButton = QToolButton()
+        self.delTaskIcon = QIcon(delTaskIconPath)
+        self.delTaskButton.setIcon(self.delTaskIcon)
+        self.delTaskButton.clicked.connect(self.delTaskPush)
 
 
-        self.mainlayout = QHBoxLayout()
-        self.mainlayout.addWidget(self.nameLabel)
-        self.mainlayout.addStretch(1)
-        self.mainlayout.addWidget(self.priorityLabel)
+        self.buttonLayout = QHBoxLayout()
+        self.buttonLayout.addStretch(1)
+        self.buttonLayout.addWidget(self.addTaskButton)
+        self.buttonLayout.addWidget(self.delTaskButton)
 
-        self.setLayout(self.mainlayout)
+        self.mainLayout = QVBoxLayout()
+        self.mainLayout.addWidget(self.groupCont)
+        self.mainLayout.addLayout(self.buttonLayout)
 
-        self.nameLabel.setFrameStyle(QFrame.StyledPanel)
-        self.nameLabel.setFrameShadow(QFrame.Raised)
-    def text(self):
-        return self.nameLabel.text()
+        self.setLayout(self.mainLayout)
 
+    def addTask(self, name):
+        if self.clear:
+            self.clear = False
+            self.groupContLayout.takeAt(0)
+        element = QLabel(name)
+        self.groupContLayout.addWidget(element)
+
+    def addTaskPush(self):
+        dialog = addTaskDialog()
+        dialog.exec_()
+        if dialog.result() == QDialog.Accepted:
+            self.parentWidget().addTask(self.name, dialog.text.text())
+            self.parentWidget().updateme()
+
+    def delTaskPush(self):
+        tasks = []
+        for task in range(self.groupContLayout.count()):
+            tasks.append(self.groupContLayout.itemAt(task).widget())
+        dialog = delTaskDialog(tasks)
+        dialog.exec_()
+        if dialog.result() == QDialog.Accepted:
+            self.parentWidget().delTask(self.name, dialog.params.currentText())
+            self.parentWidget().updateme()
+    def getText(self, position):
+        for item in range(self.groupContLayout.count()):
+            if self.groupContLayout.itemAt(item).geometry().contains(position - QPoint(0,20)):
+                return self.groupContLayout.itemAt(item).widget().text()
 
 
 class TasksWidget(QWidget):
@@ -90,18 +120,18 @@ class TasksWidget(QWidget):
 
         self.toolbarLayout = QHBoxLayout()
 
-        self.addGroupIcon = QIcon('icons/add.png')
+        self.addGroupIcon = QIcon(addGroupIconPath)
         self.addGroupButton = QToolButton()
         self.addGroupButton.setIcon(self.addGroupIcon)
         self.addGroupButton.setIconSize(QSize(16, 16))
         self.addGroupButton.clicked.connect(self.addGroupPush)
 
 
-        self.delGroupIcon = QIcon('icons/del.png')
-        self.delGroupIcon.Mode(QIcon.Normal)
+        self.delGroupIcon = QIcon(delGroupIconPath)
         self.delGroupButton = QToolButton()
         self.delGroupButton.setIcon(self.delGroupIcon)
         self.delGroupButton.setIconSize(QSize(16, 16))
+        self.delGroupButton.clicked.connect(self.delGroupPush)
         #TODO Implement the group deleting system
 
         self.toolbarLayout.addStretch(1)
@@ -115,15 +145,19 @@ class TasksWidget(QWidget):
         ##list of labels - tasks
         self.groups = groups
 
-        self.update()
+        self.updateme()
+        self.setLayout(self.widgetLayout)
 
-    def update(self):
+    def updateme(self):
         child = self.mainLayout.takeAt(0)
         while child:
-            del child
+            child.widget().deleteLater()
             child = self.mainLayout.takeAt(0)
+        # self.mainLayout.update()
         for group in self.groups:
-            groupwidget = TaskGroupWidget(group.getName(), group.getPriority())
+            groupwidget = TaskGroupWidget(group.getName())
+            for task in group:
+                groupwidget.addTask(task.getTask())
             self.mainLayout.addWidget(groupwidget)
 
         self.setLayout(self.widgetLayout)
@@ -146,7 +180,8 @@ class TasksWidget(QWidget):
         if self.isItemAtPoint(position):
             item = self.itemAtPoint(position)
             if item.widget() != 0:
-                return item.widget().text()
+                position -= QPoint(item.widget().x(), item.widget().y())
+                return item.widget().getText(position)
         return ''
     ##End Drag and drop
 
@@ -158,26 +193,26 @@ class TasksWidget(QWidget):
         item.widget().setFrameStyle(QFrame.Panel | QFrame.Raised)
 
     ##Tasks functions
-    def addGroup(self, groupname, priority = 0):
+    def addGroup(self, groupname):
         for group in self.groups:
-            if groupname == group.getName:
+            if groupname == group.getName():
                 raise NameError
-        self.groups.append(TaskGroup(groupname, priority))
-        self.update()
+        self.groups.append(TaskGroup(groupname))
+        self.updateme()
     def delGroup(self, groupname):
         for group in self.groups:
             if groupname == group.getName():
-                self.tasks.pop(group)
+                self.groups.remove(group)
                 return
         raise NameError
 
-    def addTask(self, groupname, taskname, priority = 0):
+    def addTask(self, groupname, taskname):
         for group in self.groups:
             if groupname == group.getName():
                 for task in group:
                     if task == taskname:
                         raise NameError
-                group.addTask(Task(taskname, priority))
+                group.addTask(Task(taskname))
 
 
     def delTask(self,groupname,taskname):
@@ -189,18 +224,25 @@ class TasksWidget(QWidget):
                         return
         raise NameError
 
-    def addTaskPush(self):
-        dialog = addTaskDialog(self.groups)
-        dialog.exec_()
-
     def addGroupPush(self):
         dialog = addGroupDialog()
         dialog.exec_()
         if dialog.result() == QDialog.Accepted:
             try:
-                self.addGroup(dialog.text.text(), dialog.priorities.currentText())
+                self.addGroup(dialog.text.text())
             except NameError:
                 return
                 #TODO Raise an error window stating that group with such name already exist and return to previous state
+
+    def delGroupPush(self):
+        dialog = delGroupDialog(self.groups)
+        dialog.exec_()
+        if dialog.result() == QDialog.Accepted:
+            self.delGroup(dialog.params.currentText())
+            self.updateme()
+
     def setGroups(self, groups):
         self.groups = groups
+
+    def getGroups(self):
+        return self.groups

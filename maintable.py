@@ -2,13 +2,13 @@ from PySide.QtGui import *
 
 
 class MainTable(QTableWidget):
-    def __init__(self, date):
+    def __init__(self, weeknum):
         super(MainTable, self).__init__()
-        self.date = date
+        self.weeknum = weeknum
         self.setRowCount(48)
         self.setColumnCount(7)
-        rowsheaders = []
-        columnheaders = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        self.rowsheaders = []
+        self.columnheaders = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         for i in range(0, 1440, 30):
             hours = i//60
             minutes = i - hours*60
@@ -16,12 +16,28 @@ class MainTable(QTableWidget):
             minutes = '0' + str(minutes)
             hours = hours[-2:]
             minutes = minutes[-2:]
-            rowsheaders.append(str(hours) + ':' + str(minutes))
-        self.setVerticalHeaderLabels(rowsheaders)
-        self.setHorizontalHeaderLabels(columnheaders)
-        for i in range(len(rowsheaders)):
-            for c in range(len(columnheaders)):
+            self.rowsheaders.append(str(hours) + ':' + str(minutes))
+        self.setVerticalHeaderLabels(self.rowsheaders)
+        self.setHorizontalHeaderLabels(self.columnheaders)
+        for i in range(len(self.rowsheaders)):
+            for c in range(len(self.columnheaders)):
                 newItem = QTableWidgetItem()
-                self.setItem(i,c,newItem)
+                self.setItem(i, c, newItem)
 
         self.acceptDrops()
+
+    def getWeeknum(self):
+        return self.weeknum
+
+    def getTasks(self, weekday):
+        if weekday not in self.columnheaders:
+            return
+        result = {}
+        column = self.columnheaders.index(weekday)
+        row = 0
+        for time in self.rowsheaders:
+            item = self.item(row, column).text()
+            if item != '':
+                result[time] = item
+            row += 1
+        return result
