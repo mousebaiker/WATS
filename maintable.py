@@ -24,6 +24,7 @@ class MainTable(QTableWidget):
                 newItem = QTableWidgetItem()
                 self.setItem(i, c, newItem)
 
+        self.setCurrentCell(12, 0)
         self.acceptDrops()
 
     def getWeeknum(self):
@@ -41,3 +42,7 @@ class MainTable(QTableWidget):
                 result[time] = item
             row += 1
         return result
+
+    def setItems(self, items, column):
+        for row in items:
+            self.item(row,column).setText(items[row])

@@ -1,5 +1,7 @@
 from dialogs import *
 from paths import *
+from PySide.QtCore import QPoint, QSize
+
 
 class Task(object):
     def __init__(self, task):
@@ -102,6 +104,7 @@ class TaskGroupWidget(QWidget):
         if dialog.result() == QDialog.Accepted:
             self.parentWidget().delTask(self.name, dialog.params.currentText())
             self.parentWidget().updateme()
+
     def getText(self, position):
         for item in range(self.groupContLayout.count()):
             if self.groupContLayout.itemAt(item).geometry().contains(position - QPoint(0,20)):
@@ -126,13 +129,11 @@ class TasksWidget(QWidget):
         self.addGroupButton.setIconSize(QSize(16, 16))
         self.addGroupButton.clicked.connect(self.addGroupPush)
 
-
         self.delGroupIcon = QIcon(delGroupIconPath)
         self.delGroupButton = QToolButton()
         self.delGroupButton.setIcon(self.delGroupIcon)
         self.delGroupButton.setIconSize(QSize(16, 16))
         self.delGroupButton.clicked.connect(self.delGroupPush)
-        #TODO Implement the group deleting system
 
         self.toolbarLayout.addStretch(1)
         self.toolbarLayout.addWidget(self.addGroupButton)
@@ -185,13 +186,6 @@ class TasksWidget(QWidget):
         return ''
     ##End Drag and drop
 
-    ##Label pushing
-    def pushLabel(self, item):
-        item.widget().setFrameStyle(QFrame.Panel | QFrame.Sunken)
-
-    def unpushLabel(self, item):
-        item.widget().setFrameStyle(QFrame.Panel | QFrame.Raised)
-
     ##Tasks functions
     def addGroup(self, groupname):
         for group in self.groups:
@@ -199,6 +193,7 @@ class TasksWidget(QWidget):
                 raise NameError
         self.groups.append(TaskGroup(groupname))
         self.updateme()
+
     def delGroup(self, groupname):
         for group in self.groups:
             if groupname == group.getName():

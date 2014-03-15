@@ -3,6 +3,7 @@ import sys
 from database import *
 from maintable import *
 from tasks_widget import *
+from evaluator import *
 
 
 class Layout(QWidget):
@@ -50,7 +51,9 @@ class Layout(QWidget):
     def mousePressEvent(self, event):
         if event.buttons() != Qt.RightButton:
             return
-        self.rightclickpos = event.pos()
+        rightclick = event.pos()
+        scroll = self.scrollarea.verticalScrollBar().value()
+        self.rightclickpos = rightclick + QPoint(0, scroll)
         if self.taskwidget.isItemAtPoint(self.rightclickpos):
             self.dragging = True
             self.dragtext = self.taskwidget.getText(self.rightclickpos)
@@ -61,7 +64,7 @@ class Layout(QWidget):
         if event.button() != Qt.RightButton:
             return
         if self.dragging:
-            position = event.pos() - QPoint(self.taskwidget.geometry().width() + 30, 25)
+            position = event.pos() - QPoint(self.taskwidget.geometry().width() + 55, 30)
             self.frame1.setText(str(position))
             if self.table.itemAt(position) is not None:
                 self.table.itemAt(position).setText(self.dragtext)
@@ -74,9 +77,6 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.connected = False
-        # actions fro working with database
-        self.dbConAct = QAction('Connect', self)
-        self.saveAct = QAction('Save',self)
         self.mainLayout = Layout()
 
     ##Main output function
@@ -95,26 +95,35 @@ class MainWindow(QMainWindow):
         self.connected = setConnection()
         if self.connected:
             label = 'Yeahaaaaa'
-            self.mainLayout.initTasks()
         else:
             label = 'Oh, NO'
         self.statusBar().showMessage(label)
 
     def initializeMenu(self):
-        self.dbConAct.triggered.connect(self.connectTrigger)
+        # actions for working with database
+        self.saveAct = QAction('Save', self)
+        self.loadAct = QAction('Load', self)
+        self.evaluateAct = QAction('Evaluate', self)
+
         self.saveAct.triggered.connect(self.save)
+        self.loadAct.triggered.connect(self.load)
+        self.evaluateAct.triggered.connect(self.evaluate)
         self.statusBar()
         self.menu = self.menuBar()
-        self.filemenu = self.menu.addMenu('&File')
-        self.filemenu.addAction(self.dbConAct)
+        self.filemenu = self.menu.addMenu('&Home')
         self.filemenu.addAction(self.saveAct)
-
+        self.filemenu.addAction(self.loadAct)
+        self.filemenu.addAction(self.evaluateAct)
   #
   #
   ## <End> Functions handling  menu buttons signals
 
     def save(self):
+        if not self.connected:
+            self.connectTrigger()
     ## Saving tasks widget block
+    #
+    #
         # if savePath == '':
         #     # TODO File dialog for files
         # else:
@@ -132,7 +141,6 @@ class MainWindow(QMainWindow):
             query = QSqlQuery("SELECT rowid FROM status WHERE name = '"+group.getName() + "' ")
             query.next()
             id_ = query.value(0)
-            print(str(id_))
 
             for task in group:
                 query = QSqlQuery()
@@ -140,9 +148,13 @@ class MainWindow(QMainWindow):
                 query.bindValue(":name", task.getTask())
                 query.bindValue(":id", id_)
                 query.exec_()
+    #
+    #
     ################
 
     ##Saving maintable block
+    #
+    #
             weeknum = self.mainLayout.table.getWeeknum()
             weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
             for weekday in weekdays:
@@ -159,13 +171,51 @@ class MainWindow(QMainWindow):
                     fields = 'weekday,' + fields[:-1]
                     values = '"'+weekday + '_' + str(weeknum)+ '"' + ', ' + values[:-1]
                     request = 'INSERT INTO main (' + fields + ') VALUES (' + values + ')'
-                    print request
                     query = QSqlQuery()
                     query.exec_(request)
-                    print(query.lastError())
-
-
+                    print('Saved')
+    #
+    #
     ################
+
+    def load(self):
+        if not self.connected:
+            self.connectTrigger()
+        self.mainLayout.initTasks()
+
+        #### Loading main table
+        #
+        #
+        weeknum = self.mainLayout.table.getWeeknum()
+        weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        for weekday in weekdays:
+            day = weekday + '_' + str(weeknum)
+
+            q = 'SELECT * FROM main WHERE weekday = "' + day + '"'
+            query = QSqlQuery(q)
+            query.next()
+            record = query.record()
+            indexes = []
+            if not record.isEmpty():
+                for i in range(0, 44):
+                    if not record.isNull(i + 1):
+                        indexes.append(i)
+            values = {}
+            for index in indexes:
+                q = QSqlQuery("SELECT name FROM tasks WHERE rowid ='"+str(query.value(index + 1))+"'")
+                q.next()
+                values[index] = q.value(0)
+
+            if values:
+                self.mainLayout.table.setItems(values, weekdays.index(weekday))
+        #
+        #
+        ################
+
+    def evaluate(self):
+        self.evWindow = EvaluatorWindow(self.mainLayout.table)
+        self.evWindow.generate()
+        self.evWindow.draw()
 
 
 def main():

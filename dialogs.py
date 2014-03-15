@@ -1,5 +1,4 @@
 from PySide.QtGui import *
-from PySide.QtCore import QPoint, QSize
 
 
 class addTaskDialog(QDialog):
