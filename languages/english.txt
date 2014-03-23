@@ -1,0 +1,53 @@
+# Main Table Headers
+lang_mainTableHeaders = [u'Monday',u'Tuesday',u'Wednesday',u'Thursday',u'Friday',u'Saturday',u'Sunday']
+
+
+# Меню:
+#    Фаил:
+lang_fileMenu = u'File'
+
+#       Загрузить
+lang_loadMenuItem = u'Load'
+
+#       Сохранить
+lang_saveMenuItem = u'Save'
+
+#   Оценка:
+#       Оценить
+lang_evaluateMenuItem = u'Evaluate'
+
+
+# Статусы:
+#   Заголовок диалогового окна при добавлении статуса
+lang_addStatusTitle = u'Add status'
+
+#       Текст при добавлении статуса
+lang_addStatusText = u'Enter status name'
+
+#   Заголовок диалогового окна при удалении статуса
+lang_delStatusTitle = u'Delete status'
+
+#       Текст при удалении статуса
+lang_delStatusText = u'Choose status to delete'
+
+
+# Задания:
+#   Заголовок диалогового окна при добавлении задания
+lang_addTaskTitle = u'Add task'
+
+#       Текст при добавлении задания
+lang_addTaskText = u'Enter task name'
+
+#   Заголовок диалогового окна при удалении задания
+lang_delTaskTitle = u'Delete task'
+
+#       Текст при удалении задания
+lang_delTaskText = u'Choose task to delete'
+
+
+#Кнопки:
+#ОК
+lang_OKButton = u'OK'
+
+#Отмена
+lang_CancelButton = u'Cancel'

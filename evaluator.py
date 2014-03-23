@@ -23,7 +23,7 @@ class Evaluator(object):
     def countEmptyPercent(self):
         empty = self.countEmpty()
         total = self.total()
-        return int((empty/total) * 100)
+        return int((float(empty)/total) * 100)
 
 
 class EvaluatorWindow(QWidget):
@@ -32,7 +32,7 @@ class EvaluatorWindow(QWidget):
         self.evaluator = Evaluator(table)
         self.mainLayout = QVBoxLayout()
         self.setLayout(self.mainLayout)
-        self.setWindowTitle(u'Пожалуйста')
+        self.setWindowTitle(u'Оценка')
         self.resize(200, 450)
 
     def generate(self):

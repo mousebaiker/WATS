@@ -1,5 +1,5 @@
 from PySide.QtGui import *
-
+from  language import languagedict
 
 class MainTable(QTableWidget):
     def __init__(self, weeknum):
@@ -9,6 +9,7 @@ class MainTable(QTableWidget):
         self.setColumnCount(7)
         self.rowsheaders = []
         self.columnheaders = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        self.columnheaderslan = languagedict['lang_mainTableHeaders']
         for i in range(0, 1440, 30):
             hours = i//60
             minutes = i - hours*60
@@ -18,7 +19,7 @@ class MainTable(QTableWidget):
             minutes = minutes[-2:]
             self.rowsheaders.append(str(hours) + ':' + str(minutes))
         self.setVerticalHeaderLabels(self.rowsheaders)
-        self.setHorizontalHeaderLabels(self.columnheaders)
+        self.setHorizontalHeaderLabels(self.columnheaderslan)
         for i in range(len(self.rowsheaders)):
             for c in range(len(self.columnheaders)):
                 newItem = QTableWidgetItem()

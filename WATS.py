@@ -4,6 +4,7 @@ from database import *
 from maintable import *
 from tasks_widget import *
 from evaluator import *
+from language import loadLanguage, languagedict
 
 
 class Layout(QWidget):
@@ -101,16 +102,16 @@ class MainWindow(QMainWindow):
 
     def initializeMenu(self):
         # actions for working with database
-        self.saveAct = QAction('Save', self)
-        self.loadAct = QAction('Load', self)
-        self.evaluateAct = QAction('Evaluate', self)
+        self.saveAct = QAction(languagedict['lang_saveMenuItem'], self)
+        self.loadAct = QAction(languagedict['lang_loadMenuItem'], self)
+        self.evaluateAct = QAction(languagedict['lang_evaluateMenuItem'], self)
 
         self.saveAct.triggered.connect(self.save)
         self.loadAct.triggered.connect(self.load)
         self.evaluateAct.triggered.connect(self.evaluate)
         self.statusBar()
         self.menu = self.menuBar()
-        self.filemenu = self.menu.addMenu('&Home')
+        self.filemenu = self.menu.addMenu(languagedict['lang_fileMenu'])
         self.filemenu.addAction(self.saveAct)
         self.filemenu.addAction(self.loadAct)
         self.filemenu.addAction(self.evaluateAct)
@@ -220,6 +221,7 @@ class MainWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
+    loadLanguage()
 
     mainGui = MainWindow()
     mainGui.initializeMenu()
