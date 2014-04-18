@@ -1,6 +1,8 @@
 from PySide.QtGui import *
 from PySide.QtCore import QTime
+
 from language import languagedict
+
 
 class addTaskDialog(QDialog):
     def __init__(self):
@@ -150,7 +152,7 @@ class addBlockDialog(QDialog):
         self.weekday = QComboBox()
         for weekday in weekdays:
             self.weekday.addItem(weekday)
-#commit please
+
         self.timeLabel = QLabel(u'Время')
         self.start = QTimeEdit(QTime(6, 0))
         self.start.setDisplayFormat('hh:mm')
