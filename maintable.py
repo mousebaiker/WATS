@@ -44,6 +44,11 @@ class MainTable(QTableWidget):
             row += 1
         return result
 
-    def setItems(self, items, column):
+    def setItemsColumn(self, items, column):
         for row in items:
-            self.item(row,column).setText(items[row])
+            self.item(row, column).setText(items[row])
+
+    def clearItems(self):
+        for row in range(self.rowCount()):
+            for column in range(self.columnCount()):
+                self.item(row,column).setText('')

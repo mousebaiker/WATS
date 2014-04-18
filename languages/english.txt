@@ -16,6 +16,9 @@ lang_saveMenuItem = u'Save'
 #       Оценить
 lang_evaluateMenuItem = u'Evaluate'
 
+#   Языковое расширение
+lang_languageMenuItem = u'Choose language package'
+
 
 # Статусы:
 #   Заголовок диалогового окна при добавлении статуса

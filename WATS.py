@@ -1,10 +1,12 @@
+# -*- coding: utf-8 -*-
 from PySide.QtCore import *
 import sys
 from database import *
 from maintable import *
 from tasks_widget import *
 from evaluator import *
-from language import loadLanguage, languagedict
+from dialogs import *
+import language
 
 
 class Layout(QWidget):
@@ -101,20 +103,35 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(label)
 
     def initializeMenu(self):
-        # actions for working with database
-        self.saveAct = QAction(languagedict['lang_saveMenuItem'], self)
-        self.loadAct = QAction(languagedict['lang_loadMenuItem'], self)
-        self.evaluateAct = QAction(languagedict['lang_evaluateMenuItem'], self)
+        # Actions
+            #File
+        self.loadlanguageAct = QAction(language.languagedict['lang_languageMenuItem'], self)
+        self.saveAct = QAction(language.languagedict['lang_saveMenuItem'], self)
+        self.loadAct = QAction(language.languagedict['lang_loadMenuItem'], self)
+        self.evaluateAct = QAction(language.languagedict['lang_evaluateMenuItem'], self)
 
+            #Edit
+        self.addblockAct = QAction(u'Добавить', self)
+
+        self.loadlanguageAct.triggered.connect(self.loadlanguage)
         self.saveAct.triggered.connect(self.save)
         self.loadAct.triggered.connect(self.load)
         self.evaluateAct.triggered.connect(self.evaluate)
+        self.addblockAct.triggered.connect(self.addblock)
+
         self.statusBar()
         self.menu = self.menuBar()
-        self.filemenu = self.menu.addMenu(languagedict['lang_fileMenu'])
+
+        #File
+        self.filemenu = self.menu.addMenu(language.languagedict['lang_fileMenu'])
         self.filemenu.addAction(self.saveAct)
         self.filemenu.addAction(self.loadAct)
         self.filemenu.addAction(self.evaluateAct)
+        self.filemenu.addAction(self.loadlanguageAct)
+
+        #Edit
+        self.editmenu = self.menu.addMenu(u'Правка')
+        self.editmenu.addAction(self.addblockAct)
   #
   #
   ## <End> Functions handling  menu buttons signals
@@ -183,7 +200,7 @@ class MainWindow(QMainWindow):
         if not self.connected:
             self.connectTrigger()
         self.mainLayout.initTasks()
-
+        self.mainLayout.table.clearItems()
         #### Loading main table
         #
         #
@@ -208,20 +225,42 @@ class MainWindow(QMainWindow):
                 values[index] = q.value(0)
 
             if values:
-                self.mainLayout.table.setItems(values, weekdays.index(weekday))
+                self.mainLayout.table.setItemsColumn(values, weekdays.index(weekday))
         #
         #
         ################
 
     def evaluate(self):
         self.evWindow = EvaluatorWindow(self.mainLayout.table)
-        self.evWindow.generate()
+
+        days = []
+        index = 0
+        for day in self.mainLayout.table.columnheaderslan:
+            days.append((day,index))
+            index += 1
+        self.evWindow.generate(self.mainLayout.taskwidget.groups, days)
+
         self.evWindow.draw()
 
+    def loadlanguage(self):
+        language.chooseLanguageFile(self)
+        language.loadLanguage()
+        self.updatelanguage()
 
+    def updatelanguage(self):
+        self.mainLayout.table.setHorizontalHeaderLabels(language.languagedict['lang_mainTableHeaders'])
+        self.loadlanguageAct.setText(language.languagedict['lang_languageMenuItem'])
+        self.saveAct.setText(language.languagedict['lang_saveMenuItem'])
+        self.loadAct.setText(language.languagedict['lang_loadMenuItem'])
+        self.evaluateAct.setText(language.languagedict['lang_evaluateMenuItem'])
+        self.filemenu.setTitle(language.languagedict['lang_fileMenu'])
+
+    def addblock(self):
+        dialog = addBlockDialog(self.mainLayout.taskwidget.groups, self.mainLayout.table.columnheaderslan)
+        dialog.exec_()
 def main():
     app = QApplication(sys.argv)
-    loadLanguage()
+    language.loadLanguage()
 
     mainGui = MainWindow()
     mainGui.initializeMenu()
