@@ -1,5 +1,7 @@
 from PySide.QtGui import *
-from  language import languagedict
+
+import language
+
 
 class MainTable(QTableWidget):
     def __init__(self, weeknum):
@@ -9,7 +11,7 @@ class MainTable(QTableWidget):
         self.setColumnCount(7)
         self.rowsheaders = []
         self.columnheaders = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        self.columnheaderslan = languagedict['lang_mainTableHeaders']
+        self.columnheaderslan = language.languagedict['lang_mainTableHeaders']
         for i in range(0, 1440, 30):
             hours = i//60
             minutes = i - hours*60
@@ -45,8 +47,26 @@ class MainTable(QTableWidget):
         return result
 
     def setItemsColumn(self, items, column):
+        """Sets items for a whole column. Column is presented as index"""
         for row in items:
             self.item(row, column).setText(items[row])
+
+    def setItemRowCol(self, item, rowname, columnname):
+        """Sets item for a particular row and column names.
+        Rowname and columnname should be examples of strings(headers of the table)"""
+        row = self.rowsheaders.index(rowname)
+        column = self.columnheaderslan.index(columnname)
+
+        self.item(row, column).setText(item)
+
+    def setItemTime(self, item, start, end, columnname):
+        """Sets items for a given amount of time. Start and end are examples of strings(headers of table)"""
+        fromto = self.rowsheaders[self.rowsheaders.index(start): self.rowsheaders.index(end) + 1]
+        column = self.columnheaderslan.index(columnname)
+
+        for rowname in fromto:
+            row = self.rowsheaders.index(rowname)
+            self.item(row, column).setText(item)
 
     def clearItems(self):
         for row in range(self.rowCount()):

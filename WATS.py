@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-from PySide.QtCore import *
 import sys
+
+from PySide.QtCore import *
+
 from database import *
 from maintable import *
 from tasks_widget import *
@@ -111,7 +113,7 @@ class MainWindow(QMainWindow):
         self.evaluateAct = QAction(language.languagedict['lang_evaluateMenuItem'], self)
 
             #Edit
-        self.addblockAct = QAction(u'Добавить', self)
+        self.addblockAct = QAction(language.languagedict['lang_addblockMenuItem'], self)
 
         self.loadlanguageAct.triggered.connect(self.loadlanguage)
         self.saveAct.triggered.connect(self.save)
@@ -130,7 +132,7 @@ class MainWindow(QMainWindow):
         self.filemenu.addAction(self.loadlanguageAct)
 
         #Edit
-        self.editmenu = self.menu.addMenu(u'Правка')
+        self.editmenu = self.menu.addMenu(language.languagedict['lang_editMenu'])
         self.editmenu.addAction(self.addblockAct)
   #
   #
@@ -233,11 +235,7 @@ class MainWindow(QMainWindow):
     def evaluate(self):
         self.evWindow = EvaluatorWindow(self.mainLayout.table)
 
-        days = []
-        index = 0
-        for day in self.mainLayout.table.columnheaderslan:
-            days.append((day,index))
-            index += 1
+        days = language.languagedict['lang_mainTableHeaders']
         self.evWindow.generate(self.mainLayout.taskwidget.groups, days)
 
         self.evWindow.draw()
@@ -254,10 +252,36 @@ class MainWindow(QMainWindow):
         self.loadAct.setText(language.languagedict['lang_loadMenuItem'])
         self.evaluateAct.setText(language.languagedict['lang_evaluateMenuItem'])
         self.filemenu.setTitle(language.languagedict['lang_fileMenu'])
+        self.addblockAct.setText(language.languagedict['lang_addblockMenuItem'])
+        self.editmenu.setTitle(language.languagedict['lang_editMenu'])
 
     def addblock(self):
-        dialog = addBlockDialog(self.mainLayout.taskwidget.groups, self.mainLayout.table.columnheaderslan)
+        dialog = addBlockDialog(self.mainLayout.taskwidget.groups)
         dialog.exec_()
+        if dialog.result() == QDialog.Accepted:
+
+            # # Reading information
+            task = dialog.tasks.currentText()
+            weekday = dialog.weekday.currentText()
+            start = dialog.start.time()
+            end = dialog.end.time()
+
+            # # Rounding minutes
+            if start.minute() > 30:
+                start = QTime(start.hour(), 30)
+            else:
+                start = QTime(start.hour(), 0)
+
+            if end.minute() > 30:
+                end = QTime(end.hour(), 30)
+            else:
+                end = QTime(end.hour(), 0)
+
+            start = start.toString('hh:mm')
+            end = end.toString('hh:mm')
+            self.mainLayout.table.setItemTime(task, start, end, weekday)
+
+
 def main():
     app = QApplication(sys.argv)
     language.loadLanguage()

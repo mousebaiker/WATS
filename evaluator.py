@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from PySide.QtGui import *
 
+import language
+
 
 class Evaluator(object):
     def __init__(self, table):
@@ -41,13 +43,13 @@ class EvaluatorWindow(QWidget):
         self.layoutWidget = QWidget()
         self.scroll = QScrollArea()
         self.setLayout(self.scrollLayout)
-        self.setWindowTitle(u'Оценка')
+        self.setWindowTitle(language.languagedict['lang_evalTitle'])
         self.resize(550, 300)
 
     def generate(self, groups, days):
         self.days = days
         self.evaluationvalues['__EMPTY__'] = self.evaluator.countPercent(self.evaluator.countEmpty(), self.evaluator.total())
-        for day, index in days:
+        for index, day in enumerate(days):
             evaluationvalues = {}
             for group in groups:
                 evaluationvalues[group.getName()] = self.evaluator.countPercent(self.evaluator.countGroupTasks(group, index), self.evaluator.rowsnum)
@@ -55,17 +57,22 @@ class EvaluatorWindow(QWidget):
 
     def draw(self):
         emtprcLabel = QLabel()
-        emtprcLabel.setText('<div align = "center" size = "4"><font size = "4">'u'Вы не заполнили ' + str(self.evaluationvalues['__EMPTY__']) + u'% вашего распорядка.' + '</font></div>')
+        emtprcLabel.setText('<div align = "center" size = "4"><font size = "4">' +
+                            language.languagedict['lang_evalEmptyStart'] + str(self.evaluationvalues['__EMPTY__']) +
+                            language.languagedict['lang_evalEmptyEnd'] + '</font></div>')
         emtprcLabel.setFrameStyle(QFrame.StyledPanel)
         emtprcLabel.setMaximumHeight(25)
         self.mainLayout.addWidget(emtprcLabel)
-        for day in (i[0] for i in self.days):
+        for day in self.days:
             daylabel = QLabel()
-            daylabel.setText('<font size = 4>' + day + ':' +'</font>')
+            daylabel.setText('<font size = 4>' + day + ':' + '</font>')
             self.mainLayout.addWidget(daylabel)
             for group in self.evaluationvalues[day]:
                 if group != '__EMPTY__':
-                    label = QLabel(u'Задания группы "' + group + u'" занимает ' + str(self.evaluationvalues[day][group]) + u'% от вашего общего распорядка')
+                    label = QLabel(language.languagedict['lang_evalGroupsStart'] + group
+                                   + language.languagedict['lang_evalGroupsMiddle'] + str(
+                        self.evaluationvalues[day][group])
+                                   + language.languagedict['lang_evalGroupsEnd'])
                     self.mainLayout.addWidget(label)
             self.mainLayout.addWidget(QLabel())
         self.layoutWidget.setLayout(self.mainLayout)

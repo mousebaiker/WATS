@@ -127,9 +127,12 @@ class delGroupDialog(QDialog):
 
 
 class addBlockDialog(QDialog):
-    def __init__(self, groups, weekdays):
+    def __init__(self, groups):
         super(addBlockDialog, self).__init__()
         self.groups = groups
+
+        # Status
+        self.errorstatus = QLabel()
 
         ##Layouts
         self.topLayout = QVBoxLayout()
@@ -139,21 +142,21 @@ class addBlockDialog(QDialog):
 
 
         ##Main Elements
-        self.statusLabel = QLabel(u'Статус')
+        self.statusLabel = QLabel(languagedict['lang_addBlockStatus'])
         self.status = QComboBox()
         for status in groups:
             self.status.addItem(status.getName())
         self.status.activated.connect(self.updatetasks)
 
-        self.tasksLabel = QLabel(u'Задание')
+        self.tasksLabel = QLabel(languagedict['lang_addBlockTask'])
         self.tasks = QComboBox()
 
-        self.weekdayLabel = QLabel(u'День недели')
+        self.weekdayLabel = QLabel(languagedict['lang_addBlockWeekday'])
         self.weekday = QComboBox()
-        for weekday in weekdays:
+        for weekday in languagedict['lang_mainTableHeaders']:
             self.weekday.addItem(weekday)
 
-        self.timeLabel = QLabel(u'Время')
+        self.timeLabel = QLabel(languagedict['lang_addBlockTime'])
         self.start = QTimeEdit(QTime(6, 0))
         self.start.setDisplayFormat('hh:mm')
         self.end = QTimeEdit(QTime(7, 0))
@@ -185,15 +188,20 @@ class addBlockDialog(QDialog):
         self.buttons.addWidget(self.cancel)
 
             #Top level
+        self.topLayout.addWidget(self.errorstatus)
         self.topLayout.addLayout(self.mainLayout)
         self.topLayout.addLayout(self.buttons)
 
         # Main settings
         self.setLayout(self.topLayout)
-        self.setWindowTitle(u'Добавить блок заданий')
+        self.setWindowTitle(languagedict['lang_addBlockTitle'])
 
     def check(self):
-        self.accept()
+        if self.start.time() <= self.end.time():
+            self.accept()
+        else:
+            self.errorstatus.setText(languagedict['lang_addBlockTimeError'])
+
 
     def updatetasks(self):
         status = (i for i in self.groups if self.status.currentText() == i.getName())

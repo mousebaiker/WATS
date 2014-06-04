@@ -12,6 +12,14 @@ lang_loadMenuItem = u'Load'
 #       Сохранить
 lang_saveMenuItem = u'Save'
 
+
+#   Правка:
+lang_editMenu = u'Edit'
+
+#        Добавить
+lang_addblockMenuItem = u'Add'
+
+
 #   Оценка:
 #       Оценить
 lang_evaluateMenuItem = u'Evaluate'
@@ -54,3 +62,35 @@ lang_OKButton = u'OK'
 
 #Отмена
 lang_CancelButton = u'Cancel'
+
+
+#Оценка
+#Заголовок:
+lang_evalTitle = u'Evaluation'
+
+#Количество "пустоты"(начало):
+lang_evalEmptyStart = u'You have not completed '
+#Количеств "пустоты"(конец):
+lang_evalEmptyEnd = u'% of your schedule.'
+
+#Группы(начало):
+lang_evalGroupsStart = u'Tasks of "'
+#Группы(середина):
+lang_evalGroupsMiddle = u'" group are present in '
+#Группы(конец):
+lang_evalGroupsEnd = u'% of your schedule'
+
+
+#Диалог добавления блока
+#Заголовок
+lang_addBlockTitle = u'Add tasks'
+#Подпись статуса
+lang_addBlockStatus = u'Status'
+#Подпись задания
+lang_addBlockTask = u'Task'
+#Подпись дня недели
+lang_addBlockWeekday = u'Weekday'
+#Подпись времени
+lang_addBlockTime = u'Time'
+#Ошибка
+lang_addBlockTimeError = u'Time of the start should be no less than time of the end!'

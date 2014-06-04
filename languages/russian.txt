@@ -12,6 +12,13 @@ lang_loadMenuItem = u'Загрузить'
 #       Сохранить
 lang_saveMenuItem = u'Сохранить'
 
+
+#   Правка:
+lang_editMenu = u'Правка'
+
+#        Добавить
+lang_addblockMenuItem = u'Добавить'
+
 #   Оценка:
 #       Оценить
 lang_evaluateMenuItem = u'Оценить'
@@ -54,3 +61,34 @@ lang_OKButton = u'ОК'
 
 #Отмена
 lang_CancelButton = u'Отмена'
+
+
+#Оценка
+#Заголовок:
+lang_evalTitle = u'Оценка'
+
+#Количество "пустоты"(начало):
+lang_evalEmptyStart = u'Вы не заполнили '
+#Количеств "пустоты"(конец):
+lang_evalEmptyEnd = u'% вашего распорядка.'
+
+#Группы(начало):
+lang_evalGroupsStart = u'Задания группы "'
+#Группы(середина):
+lang_evalGroupsMiddle = u'" занимает '
+#Группы(конец):
+lang_evalGroupsEnd = u'% от вашего общего распорядка'
+
+#Диалог добавления блока
+#Заголовок
+lang_addBlockTitle = u'Добавить блок заданий'
+#Подпись статуса
+lang_addBlockStatus = u'Статус'
+#Подпись задания
+lang_addBlockTask = u'Задание'
+#Подпись дня недели
+lang_addBlockWeekday = u'День недели'
+#Подпись времени
+lang_addBlockTime = u'Время'
+#Ошибка
+lang_addBlockTimeError = u'Время начала должно быть не меньше времени конца!'
