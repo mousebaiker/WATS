@@ -1,16 +1,16 @@
 from PySide.QtSql import *
 
 
-def setConnection(username = 0, password = 0):
+def setConnection(username=None, password=None):
         dab = QSqlDatabase.addDatabase("QSQLITE")
-        dab.setDatabaseName('test')
-        if username != 0:
+        dab.setDatabaseName('test_new')
+        if username != None:
             dab.setUsername(username)
-        if password != 0 :
+        if password != None:
             dab.setPassword(password)
         if not dab.open():
             return False
-        time = ''
+        time = []
         for i in range(0, 1440, 30):
             hours = i//60
             minutes = i - hours*60
@@ -18,9 +18,9 @@ def setConnection(username = 0, password = 0):
             minutes = '0' + str(minutes)
             hours = hours[-2:]
             minutes = minutes[-2:]
-            time = time + ' "' + str(hours) + ':' + str(minutes) + '" int,'
-        time = time[:-1]
-        q_main = 'CREATE TABLE main(weekday varchar,' + time + ')'
+            time.append(str(hours) + ':' + str(minutes))
+        print(time)
+        q_main = 'CREATE TABLE main(weekday varchar, task int, time int)'
         query = QSqlQuery()
         query.exec_(q_main)
 
@@ -29,6 +29,16 @@ def setConnection(username = 0, password = 0):
 
         q_status = 'CREATE TABLE status(name varchar, comments text)'
         query.exec_(q_status)
+
+        q_time = 'CREATE TABLE time(hour varchar)'
+        query.exec_(q_time)
+
+        query = QSqlQuery('SELECT * FROM time')
+        if not query.next():
+            for hour in time:
+                query.prepare('INSERT INTO time(hour) VALUES (:hour)')
+                query.bindValue(":hour", hour)
+                query.exec_()
         return True
 
 

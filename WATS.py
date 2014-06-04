@@ -180,20 +180,30 @@ class MainWindow(QMainWindow):
             for weekday in weekdays:
                 tasks = self.mainLayout.table.getTasks(weekday)
                 if tasks:
-                    fields = ''
-                    values = ''
+                    values = []
                     for time in tasks:
+                        # # Getting id for the task
                         query = QSqlQuery("SELECT rowid FROM tasks WHERE name ='" + tasks[time] + "'")
                         query.next()
-                        tasks[time] = query.value(0)
-                        fields += '"'+time +'"'+ ','
-                        values += str(tasks[time]) + ','
-                    fields = 'weekday,' + fields[:-1]
-                    values = '"'+weekday + '_' + str(weeknum)+ '"' + ', ' + values[:-1]
-                    request = 'INSERT INTO main (' + fields + ') VALUES (' + values + ')'
-                    query = QSqlQuery()
-                    query.exec_(request)
+                        taskid = query.value(0)
+
+                        # # Getting id for the time
+                        query = QSqlQuery("SELECT rowid FROM time WHERE hour ='" + time + "'")
+                        query.next()
+                        timeid = query.value(0)
+
+                        values.append((weekday + '_' + str(weeknum), str(taskid), str(timeid)))
+
+                    for value in values:
+                        request = 'INSERT INTO main (weekday, task, time) VALUES ("' \
+                                  + value[0] + '", ' + value[1] + ', ' + value[2] + ')'
+                        query = QSqlQuery()
+                        query.exec_(request)
+                        print(request)
+                        print(query.lastError())
+
                     print('Saved')
+
     #
     #
     ################
@@ -209,25 +219,23 @@ class MainWindow(QMainWindow):
         weeknum = self.mainLayout.table.getWeeknum()
         weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         for weekday in weekdays:
+            values = []
+
             day = weekday + '_' + str(weeknum)
 
-            q = 'SELECT * FROM main WHERE weekday = "' + day + '"'
+            q = 'SELECT weekday, task, time FROM main WHERE weekday = "' + day + '"'
             query = QSqlQuery(q)
-            query.next()
-            record = query.record()
-            indexes = []
-            if not record.isEmpty():
-                for i in range(0, 44):
-                    if not record.isNull(i + 1):
-                        indexes.append(i)
-            values = {}
-            for index in indexes:
-                q = QSqlQuery("SELECT name FROM tasks WHERE rowid ='"+str(query.value(index + 1))+"'")
-                q.next()
-                values[index] = q.value(0)
+            while query.next():
+                values.append([query.value(i) for i in range(3)])
 
-            if values:
-                self.mainLayout.table.setItemsColumn(values, weekdays.index(weekday))
+            items = {}
+            for _, taskid, timeid in values:
+                q = QSqlQuery("SELECT name FROM tasks WHERE rowid ='" + str(taskid) + "'")
+                q.next()
+                items[timeid] = q.value(0)
+
+            if items:
+                self.mainLayout.table.setItemsColumn(items, weekdays.index(weekday))
         #
         #
         ################
