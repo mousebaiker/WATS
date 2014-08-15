@@ -4,6 +4,8 @@ import os
 from PySide.QtGui import *
 
 
+# Decorator maker. Input: mode - 'save' or 'load'
+# Wraps the save or load function, making all the necessary file twerks before and after
 def filemove(mode):
     def decorator(func):
         def wrapper(self):
@@ -40,3 +42,8 @@ def filemove(mode):
                 shutil.move(os.path.basename(paths.savePath)[:-8], paths.savePath[:-8])
         return wrapper
     return decorator
+
+
+def countPercent(given, total):
+    """Returns the percent number of given against total"""
+    return int((float(given)/total) * 100)

@@ -31,9 +31,13 @@ class MainTable(QTableWidget):
         self.acceptDrops()
 
     def getWeeknum(self):
+        """Return the number of the week that table is currently represents"""
+
         return self.weeknum
 
     def getTasks(self, weekday):
+        """ Returns the dictionary of (time:task) pairs for a given day of the week"""
+
         if weekday not in self.columnheaders:
             return
         result = {}
@@ -48,12 +52,14 @@ class MainTable(QTableWidget):
 
     def setItemsColumn(self, items, column):
         """Sets items for a whole column. Column is presented as index"""
+
         for row in items:
             self.item(row, column).setText(items[row])
 
     def setItemRowCol(self, item, rowname, columnname):
         """Sets item for a particular row and column names.
         Rowname and columnname should be examples of strings(headers of the table)"""
+
         row = self.rowsheaders.index(rowname)
         column = self.columnheaderslan.index(columnname)
 
@@ -61,6 +67,7 @@ class MainTable(QTableWidget):
 
     def setItemTime(self, item, start, end, columnname):
         """Sets items for a given amount of time. Start and end are examples of strings(headers of table)"""
+
         fromto = self.rowsheaders[self.rowsheaders.index(start): self.rowsheaders.index(end) + 1]
         column = self.columnheaderslan.index(columnname)
 

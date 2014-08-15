@@ -2,18 +2,24 @@
 from PySide.QtGui import *
 
 import language
+import helpers
 
 
 class Evaluator(object):
+    """Implementation of logical and mathematical part of evaluator"""
     def __init__(self, table):
         self.table = table
         self.columnsnum = self.table.columnCount()
         self.rowsnum = self.table.rowCount()
 
     def total(self):
+        """Returns the total number of fields in table"""
+
         return self.columnsnum * self.rowsnum
 
     def countEmpty(self):
+        """Returns the number of empty cells in table"""
+
         empty = 0
         for row in range(self.rowsnum):
             for column in range(self.columnsnum):
@@ -22,10 +28,9 @@ class Evaluator(object):
                     empty += 1
         return empty
 
-    def countPercent(self, given, total):
-        return int((float(given)/total) * 100)
-
     def countGroupTasks(self, group, columnindex):
+        """Returns the number of tasks of given group in given column"""
+
         items = 0
         for row in range(self.rowsnum):
             text = self.table.item(row, columnindex).text()
@@ -33,7 +38,9 @@ class Evaluator(object):
                 items += 1
         return items
 
+
 class EvaluatorWindow(QWidget):
+    """Implementation of graphical part and output of evaluator"""
     def __init__(self, table):
         super(EvaluatorWindow, self).__init__()
         self.evaluationvalues = {}
@@ -47,15 +54,24 @@ class EvaluatorWindow(QWidget):
         self.resize(550, 300)
 
     def generate(self, groups, days):
+        """
+        Generates the dictionary of pairs (day: group_dict).
+        Exception '__EMPTY__' field - contains the percent of empty blanks.
+        group_dict - dictionary of pairs (group: percent)
+
+         """
+
         self.days = days
-        self.evaluationvalues['__EMPTY__'] = self.evaluator.countPercent(self.evaluator.countEmpty(), self.evaluator.total())
+        self.evaluationvalues['__EMPTY__'] = helpers.countPercent(self.evaluator.countEmpty(), self.evaluator.total())
         for index, day in enumerate(days):
             evaluationvalues = {}
             for group in groups:
-                evaluationvalues[group.getName()] = self.evaluator.countPercent(self.evaluator.countGroupTasks(group, index), self.evaluator.rowsnum)
+                evaluationvalues[group.getName()] = helpers.countPercent(self.evaluator.countGroupTasks(group, index), self.evaluator.rowsnum)
             self.evaluationvalues[day] = evaluationvalues
 
     def draw(self):
+        """Creates window and outputs the information"""
+
         emtprcLabel = QLabel()
         emtprcLabel.setText('<div align = "center" size = "4"><font size = "4">' +
                             language.languagedict['lang_evalEmptyStart'] + str(self.evaluationvalues['__EMPTY__']) +

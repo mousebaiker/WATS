@@ -5,6 +5,7 @@ from language import languagedict
 
 
 class addTaskDialog(QDialog):
+    """Dialog for adding tasks"""
     def __init__(self):
         super(addTaskDialog, self).__init__()
         self.label = QLabel(languagedict['lang_addTaskText'])
@@ -34,7 +35,8 @@ class addTaskDialog(QDialog):
 
 
 class delTaskDialog(QDialog):
-    def __init__(self,tasks):
+    """Dialog for deleting tasks"""
+    def __init__(self, tasks):
         super(delTaskDialog, self).__init__()
         self.label = QLabel(languagedict['lang_delTaskText'])
         self.params = QComboBox()
@@ -65,6 +67,7 @@ class delTaskDialog(QDialog):
 
 
 class addGroupDialog(QDialog):
+    """Dialog for adding groups"""
     def __init__(self):
         super(addGroupDialog, self).__init__()
 
@@ -94,6 +97,7 @@ class addGroupDialog(QDialog):
             self.accept()
 
 class delGroupDialog(QDialog):
+    """Dialog for deleting groups"""
     def __init__(self, groups):
         super(delGroupDialog, self).__init__()
 
@@ -127,6 +131,7 @@ class delGroupDialog(QDialog):
 
 
 class addBlockDialog(QDialog):
+    """Dialog for adding the block of tasks"""
     def __init__(self, groups):
         super(addBlockDialog, self).__init__()
         self.groups = groups
@@ -181,7 +186,7 @@ class addBlockDialog(QDialog):
         self.mainLayout.addWidget(self.weekdayLabel, 2, 0)
         self.mainLayout.addWidget(self.weekday, 3, 0)
         self.mainLayout.addWidget(self.timeLabel, 2, 1)
-        self.mainLayout.addLayout(self.timeLayout, 3,1)
+        self.mainLayout.addLayout(self.timeLayout, 3, 1)
 
             #Buttons
         self.buttons.addWidget(self.ok)

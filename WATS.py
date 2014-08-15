@@ -15,6 +15,7 @@ import os
 import helpers
 import globals
 
+
 class Layout(QWidget):
     def __init__(self):
         super(Layout, self).__init__()
@@ -25,7 +26,7 @@ class Layout(QWidget):
         ##Calendar init
         self.calendar = QCalendarWidget()
         self.calendar.setMaximumHeight(200)
-        # self.calendar.selectionChanged().connect(tabCheck)
+        self.calendar.selectionChanged.connect(self.tabCheck)
 
         self.table = MainTable(1)
         ##Layouts        self.hb = QHBoxLayout()
@@ -38,6 +39,8 @@ class Layout(QWidget):
         self.dragtext = ''
 
     def initTasks(self):
+        """Initializes and fills the task widget"""
+
         statuses = getStatuses()
         stats = []
         for status in statuses:
@@ -50,6 +53,8 @@ class Layout(QWidget):
         self.taskwidget.updateme()
 
     def create(self):
+        """Binds together every layout and widget"""
+
         self.scrollarea.setWidget(self.taskwidget)
         self.scrollarea.setWidgetResizable(True)
 
@@ -65,6 +70,8 @@ class Layout(QWidget):
         self.setLayout(self.vb)
 
     def mousePressEvent(self, event):
+        """The 'mouse-press' part of tasks drag&drop feature"""
+
         if event.buttons() != Qt.RightButton:
             return
         rightclick = event.pos()
@@ -75,6 +82,8 @@ class Layout(QWidget):
             self.dragtext = self.taskwidget.getText(self.rightclickpos)
 
     def mouseReleaseEvent(self, event):
+        """The 'mouse-release' part of tasks drag&drop feature"""
+
         if event.button() != Qt.RightButton:
             return
         if self.dragging:
@@ -83,10 +92,8 @@ class Layout(QWidget):
                 self.table.itemAt(position).setText(self.dragtext)
         self.dragging = False
 
-    # def tabCheck(self):
-    #     date = self.calendar.selectedDate()
-
-
+    def tabCheck(self):
+        date = self.calendar.selectedDate()
 
 
 class MainWindow(QMainWindow):
@@ -100,18 +107,15 @@ class MainWindow(QMainWindow):
         dayT = today - datetime.timedelta(today.weekday())
         globals.DAYFIRST = dayT
 
-    ##Main output function
     def draw(self):
+        """Main output function"""
+
         ## Models should be created after database connection
         self.mainLayout.create()
         self.setCentralWidget(self.mainLayout)
         self.showMaximized()
         self.setWindowTitle('WATS?')
         self.show()
-
-  ##Functions handling menu buttons signals
-  #
-  # #"Connect" button
 
     def connectTrigger(self, name):
         if setConnection(name):
@@ -121,6 +125,8 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(label)
 
     def initializeMenu(self):
+        """Initializes the main menu and hooks up all the necessary signals"""
+
         # Actions
             #File
         self.loadlanguageAct = QAction(language.languagedict['lang_languageMenuItem'], self)
@@ -156,6 +162,8 @@ class MainWindow(QMainWindow):
 
     @helpers.filemove('save')
     def save(self):
+        """"Saves the state of the program and moves the save file to specified place"""
+
         # Create a file if there is no previous save
         # else move db to current folder to save
         if not os.path.isfile(paths.savePath):
@@ -222,6 +230,8 @@ class MainWindow(QMainWindow):
 
     @helpers.filemove('load')
     def load(self):
+        """"Loads the file and restores the saved state"""
+
         # Restore the first day of usage
         globals.DAYFIRST = datetime.date.fromordinal(int(open(paths.savePath).read().splitlines()[0]))
 
@@ -260,6 +270,8 @@ class MainWindow(QMainWindow):
         dropConnection()
 
     def evaluate(self):
+        """Sets up and shows the evaluation of schedule"""
+
         self.evWindow = EvaluatorWindow(self.mainLayout.table)
 
         days = language.languagedict['lang_mainTableHeaders']
@@ -268,11 +280,15 @@ class MainWindow(QMainWindow):
         self.evWindow.draw()
 
     def loadlanguage(self):
+        """Loads and updates the language of program elements - the language file is chosen via dialog"""
+
         language.chooseLanguageFile(self)
         language.loadLanguage()
         self.updatelanguage()
 
     def updatelanguage(self):
+        """Updates the language of already loaded elements"""
+
         self.mainLayout.table.setHorizontalHeaderLabels(language.languagedict['lang_mainTableHeaders'])
         self.loadlanguageAct.setText(language.languagedict['lang_languageMenuItem'])
         self.saveAct.setText(language.languagedict['lang_saveMenuItem'])
@@ -283,6 +299,8 @@ class MainWindow(QMainWindow):
         self.editmenu.setTitle(language.languagedict['lang_editMenu'])
 
     def addblock(self):
+        """Adds the tasks onto main table - the properties of the block are received through dialog"""
+
         dialog = addBlockDialog(self.mainLayout.taskwidget.groups)
         dialog.exec_()
         if dialog.result() == QDialog.Accepted:
