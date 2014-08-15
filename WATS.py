@@ -9,14 +9,24 @@ from tasks_widget import *
 from evaluator import *
 from dialogs import *
 import language
-
+import paths
+import datetime
+import os
+import helpers
+import globals
 
 class Layout(QWidget):
     def __init__(self):
         super(Layout, self).__init__()
         self.taskwidget = TasksWidget([])
         self.scrollarea = QScrollArea()
-        self.frame1 = QLabel(self)
+        self.tab = QTabWidget()
+
+        ##Calendar init
+        self.calendar = QCalendarWidget()
+        self.calendar.setMaximumHeight(200)
+        # self.calendar.selectionChanged().connect(tabCheck)
+
         self.table = MainTable(1)
         ##Layouts        self.hb = QHBoxLayout()
         self.vb = QVBoxLayout()
@@ -39,16 +49,17 @@ class Layout(QWidget):
         self.taskwidget.setGroups(stats)
         self.taskwidget.updateme()
 
-
     def create(self):
         self.scrollarea.setWidget(self.taskwidget)
         self.scrollarea.setWidgetResizable(True)
 
+        self.tab.addTab(self.table, 'Week 1')
+
         self.vsplitter.addWidget(self.scrollarea)
-        self.vsplitter.addWidget(self.table)
+        self.vsplitter.addWidget(self.tab)
 
         self.bottomsplitter.addWidget(self.vsplitter)
-        self.bottomsplitter.addWidget(self.frame1)
+        self.bottomsplitter.addWidget(self.calendar)
 
         self.vb.addWidget(self.bottomsplitter)
         self.setLayout(self.vb)
@@ -63,17 +74,17 @@ class Layout(QWidget):
             self.dragging = True
             self.dragtext = self.taskwidget.getText(self.rightclickpos)
 
-
-
     def mouseReleaseEvent(self, event):
         if event.button() != Qt.RightButton:
             return
         if self.dragging:
             position = event.pos() - QPoint(self.taskwidget.geometry().width() + 55, 30)
-            self.frame1.setText(str(position))
             if self.table.itemAt(position) is not None:
                 self.table.itemAt(position).setText(self.dragtext)
         self.dragging = False
+
+    # def tabCheck(self):
+    #     date = self.calendar.selectedDate()
 
 
 
@@ -83,6 +94,11 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         self.connected = False
         self.mainLayout = Layout()
+
+        #Generate the first day of usage
+        today = datetime.date.today()
+        dayT = today - datetime.timedelta(today.weekday())
+        globals.DAYFIRST = dayT
 
     ##Main output function
     def draw(self):
@@ -96,9 +112,9 @@ class MainWindow(QMainWindow):
   ##Functions handling menu buttons signals
   #
   # #"Connect" button
-    def connectTrigger(self):
-        self.connected = setConnection()
-        if self.connected:
+
+    def connectTrigger(self, name):
+        if setConnection(name):
             label = 'Yeahaaaaa'
         else:
             label = 'Oh, NO'
@@ -138,17 +154,20 @@ class MainWindow(QMainWindow):
   #
   ## <End> Functions handling  menu buttons signals
 
+    @helpers.filemove('save')
     def save(self):
-        if not self.connected:
-            self.connectTrigger()
+        # Create a file if there is no previous save
+        # else move db to current folder to save
+        if not os.path.isfile(paths.savePath):
+            # Create txt and write down the first day of usage
+            savefile = open(paths.savePath, mode = 'w')
+            savefile.write(str(globals.DAYFIRST.toordinal()))
+            savefile.close()
+
+        filename = os.path.basename(paths.savePath)[:-8]
     ## Saving tasks widget block
     #
-    #
-        # if savePath == '':
-        #     # TODO File dialog for files
-        # else:
-        #     self.connectTrigger()
-
+        self.connectTrigger(filename)
         truncate()
         groups = self.mainLayout.taskwidget.getGroups()
 
@@ -174,33 +193,40 @@ class MainWindow(QMainWindow):
 
     ##Saving maintable block
     #
+        weeknum = self.mainLayout.table.getWeeknum()
+        weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        for weekday in weekdays:
+            tasks = self.mainLayout.table.getTasks(weekday)
+            if tasks:
+                fields = ''
+                values = ''
+                for time in tasks:
+                    query = QSqlQuery("SELECT rowid FROM tasks WHERE name ='" + tasks[time] + "'")
+                    query.next()
+                    tasks[time] = query.value(0)
+                    fields += '"' + time + '"' + ','
+                    values += str(tasks[time]) + ','
+                fields = 'weekday,' + fields[:-1]
+                values = '"'+weekday + '_' + str(weeknum) + '"' + ', ' + values[:-1]
+                request = 'INSERT INTO main (' + fields + ') VALUES (' + values + ')'
+                query = QSqlQuery()
+                query.exec_(request)
+        print('Saved')
     #
-            weeknum = self.mainLayout.table.getWeeknum()
-            weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-            for weekday in weekdays:
-                tasks = self.mainLayout.table.getTasks(weekday)
-                if tasks:
-                    fields = ''
-                    values = ''
-                    for time in tasks:
-                        query = QSqlQuery("SELECT rowid FROM tasks WHERE name ='" + tasks[time] + "'")
-                        query.next()
-                        tasks[time] = query.value(0)
-                        fields += '"'+time +'"'+ ','
-                        values += str(tasks[time]) + ','
-                    fields = 'weekday,' + fields[:-1]
-                    values = '"'+weekday + '_' + str(weeknum)+ '"' + ', ' + values[:-1]
-                    request = 'INSERT INTO main (' + fields + ') VALUES (' + values + ')'
-                    query = QSqlQuery()
-                    query.exec_(request)
-                    print('Saved')
     #
     #
     ################
 
+        # Restoring the original state
+        dropConnection()
+
+    @helpers.filemove('load')
     def load(self):
-        if not self.connected:
-            self.connectTrigger()
+        # Restore the first day of usage
+        globals.DAYFIRST = datetime.date.fromordinal(int(open(paths.savePath).read().splitlines()[0]))
+
+        filename = os.path.basename(paths.savePath)[:-8]
+        self.connectTrigger(filename)
         self.mainLayout.initTasks()
         self.mainLayout.table.clearItems()
         #### Loading main table
@@ -231,6 +257,7 @@ class MainWindow(QMainWindow):
         #
         #
         ################
+        dropConnection()
 
     def evaluate(self):
         self.evWindow = EvaluatorWindow(self.mainLayout.table)
@@ -289,7 +316,7 @@ def main():
     mainGui = MainWindow()
     mainGui.initializeMenu()
     mainGui.draw()
-    sys.exit(app.exec_()) 
+    sys.exit(app.exec_())
 
 if __name__ == '__main__':
     main()

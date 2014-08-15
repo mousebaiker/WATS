@@ -1,12 +1,12 @@
 from PySide.QtSql import *
 
 
-def setConnection(username = 0, password = 0):
+def setConnection(name, username = 0, password = 0):
         dab = QSqlDatabase.addDatabase("QSQLITE")
-        dab.setDatabaseName('test')
+        dab.setDatabaseName(name)
         if username != 0:
             dab.setUsername(username)
-        if password != 0 :
+        if password != 0:
             dab.setPassword(password)
         if not dab.open():
             return False
@@ -32,6 +32,19 @@ def setConnection(username = 0, password = 0):
         return True
 
 
+def truncate():
+    query = QSqlQuery('DELETE FROM main')
+    query.exec_()
+    query = QSqlQuery('DELETE FROM tasks')
+    query.exec_()
+    query = QSqlQuery('DELETE FROM status')
+    query.exec_()
+
+
+def dropConnection():
+    QSqlDatabase.removeDatabase(QSqlDatabase.database().connectionName())
+
+
 def getStatuses():
     q = 'SELECT name FROM status'
     query = QSqlQuery(q)
@@ -42,10 +55,10 @@ def getStatuses():
 
 
 def getTasks(status):
-    id ='SELECT rowid FROM status WHERE name ="' + status + '"'
+    id = 'SELECT rowid FROM status WHERE name ="' + status + '"'
     query = QSqlQuery(id)
     query.next()
-    id =str(query.value(0))
+    id = str(query.value(0))
     q = 'SELECT name FROM tasks WHERE status ="' + id + '"'
     query = QSqlQuery(q)
     result = []
@@ -54,10 +67,3 @@ def getTasks(status):
     return result
 
 
-def truncate():
-    query = QSqlQuery('DELETE FROM main')
-    query.exec_()
-    query = QSqlQuery('DELETE FROM tasks')
-    query.exec_()
-    query = QSqlQuery('DELETE FROM status')
-    query.exec_()
