@@ -2,7 +2,7 @@ import paths
 import shutil
 import os
 from PySide.QtGui import *
-
+from PySide.QtCore import QDate
 
 # Decorator maker. Input: mode - 'save' or 'load'
 # Wraps the save or load function, making all the necessary file twerks before and after
@@ -47,3 +47,23 @@ def filemove(mode):
 def countPercent(given, total):
     """Returns the percent number of given against total"""
     return int((float(given)/total) * 100)
+
+
+def fromDatetoQDate(date):
+    """Returns the QDate object generated from datatime.date object"""
+    return QDate.fromString(date.isoformat(), 'yyyy-MM-dd')
+
+def getWeekDif(first, last):
+    """Returns how many weeks are between 2 given days
+    first, last - tuples (weekNum, year)"""
+
+    if first.weekNumber()[1] < last.weekNumber()[1]:
+        # 28 December is chosen as indicator of the last week
+        # It is not 31 December, because sometimes it is considered as the 1 week of the new year
+        firstyearsum = QDate(first.year(), 12, 28).weekNumber()[0] - first.weekNumber()[0]
+        lastyearsum = last.weekNumber()[0]
+        middleyearsum = sum([QDate(first.weekNumber()[1] + 1 + i, 12, 28).weekNumber()[0]
+                             for i in range(last.weekNumber()[1] - first.weekNumber()[1] - 1)])
+        return firstyearsum + lastyearsum + middleyearsum
+    elif first.weekNumber()[1] == last.weekNumber()[1]:
+        return last.weekNumber()[0] - first.weekNumber()[0]

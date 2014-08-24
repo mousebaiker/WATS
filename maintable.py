@@ -1,9 +1,12 @@
 from PySide.QtGui import *
 
 import language
+from PySide.QtCore import Signal
 
 
 class MainTable(QTableWidget):
+    changed = Signal(int)
+
     def __init__(self, weeknum):
         super(MainTable, self).__init__()
         self.weeknum = weeknum
@@ -29,6 +32,9 @@ class MainTable(QTableWidget):
 
         self.setCurrentCell(12, 0)
         self.acceptDrops()
+
+        #Signal binding
+        self.cellChanged.connect(self.onChange)
 
     def getWeeknum(self):
         """Return the number of the week that table is currently represents"""
@@ -79,3 +85,6 @@ class MainTable(QTableWidget):
         for row in range(self.rowCount()):
             for column in range(self.columnCount()):
                 self.item(row,column).setText('')
+
+    def onChange(self):
+        self.changed.emit(self.weeknum)

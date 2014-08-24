@@ -8,6 +8,7 @@ from maintable import *
 from tasks_widget import *
 from evaluator import *
 from dialogs import *
+from tabs import Tabs
 import language
 import paths
 import datetime
@@ -21,7 +22,9 @@ class Layout(QWidget):
         super(Layout, self).__init__()
         self.taskwidget = TasksWidget([])
         self.scrollarea = QScrollArea()
-        self.tab = QTabWidget()
+
+        # Tabs
+        self.tab = Tabs()
 
         ##Calendar init
         self.calendar = QCalendarWidget()
@@ -29,7 +32,7 @@ class Layout(QWidget):
         self.calendar.selectionChanged.connect(self.tabCheck)
 
         self.table = MainTable(1)
-        ##Layouts        self.hb = QHBoxLayout()
+        ##Layouts
         self.vb = QVBoxLayout()
         ## Splitters
         self.vsplitter = QSplitter()
@@ -38,6 +41,8 @@ class Layout(QWidget):
         self.dragging = False
         self.dragtext = ''
 
+        #Keeping track of changed and not currently saved tables
+        self.notsaved = []
     def initTasks(self):
         """Initializes and fills the task widget"""
 
@@ -58,7 +63,7 @@ class Layout(QWidget):
         self.scrollarea.setWidget(self.taskwidget)
         self.scrollarea.setWidgetResizable(True)
 
-        self.tab.addTab(self.table, 'Week 1')
+        self.tab.openTab(1)
 
         self.vsplitter.addWidget(self.scrollarea)
         self.vsplitter.addWidget(self.tab)
@@ -93,7 +98,10 @@ class Layout(QWidget):
         self.dragging = False
 
     def tabCheck(self):
-        date = self.calendar.selectedDate()
+        selectdate = self.calendar.selectedDate()
+        startdate = helpers.fromDatetoQDate(globals.DAYFIRST)
+        weeknum = helpers.getWeekDif(startdate, selectdate) + 1
+        self.tab.openTab(weeknum)
 
 
 class MainWindow(QMainWindow):
@@ -201,24 +209,25 @@ class MainWindow(QMainWindow):
 
     ##Saving maintable block
     #
-        weeknum = self.mainLayout.table.getWeeknum()
-        weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        for weekday in weekdays:
-            tasks = self.mainLayout.table.getTasks(weekday)
-            if tasks:
-                fields = ''
-                values = ''
-                for time in tasks:
-                    query = QSqlQuery("SELECT rowid FROM tasks WHERE name ='" + tasks[time] + "'")
-                    query.next()
-                    tasks[time] = query.value(0)
-                    fields += '"' + time + '"' + ','
-                    values += str(tasks[time]) + ','
-                fields = 'weekday,' + fields[:-1]
-                values = '"'+weekday + '_' + str(weeknum) + '"' + ', ' + values[:-1]
-                request = 'INSERT INTO main (' + fields + ') VALUES (' + values + ')'
-                query = QSqlQuery()
-                query.exec_(request)
+        for weeknum in self.mainLayout.tab.notsaved:
+            table = self.mainLayout.tab.getWidgetFromWeeknum(weeknum)
+            weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+            for weekday in weekdays:
+                tasks = table.getTasks(weekday)
+                if tasks:
+                    fields = ''
+                    values = ''
+                    for time in tasks:
+                        query = QSqlQuery("SELECT rowid FROM tasks WHERE name ='" + tasks[time] + "'")
+                        query.next()
+                        tasks[time] = query.value(0)
+                        fields += '"' + time + '"' + ','
+                        values += str(tasks[time]) + ','
+                    fields = 'weekday,' + fields[:-1]
+                    values = '"'+weekday + '_' + str(weeknum) + '"' + ', ' + values[:-1]
+                    request = 'INSERT INTO main (' + fields + ') VALUES (' + values + ')'
+                    query = QSqlQuery()
+                    query.exec_(request)
         print('Saved')
     #
     #
@@ -242,20 +251,21 @@ class MainWindow(QMainWindow):
         #### Loading main table
         #
         #
-        weeknum = self.mainLayout.table.getWeeknum()
         weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        for weekday in weekdays:
-            day = weekday + '_' + str(weeknum)
 
-            q = 'SELECT * FROM main WHERE weekday = "' + day + '"'
-            query = QSqlQuery(q)
-            query.next()
+        q = 'SELECT * FROM main'
+        query = QSqlQuery(q)
+        while query.next():
             record = query.record()
             indexes = []
             if not record.isEmpty():
                 for i in range(0, 44):
                     if not record.isNull(i + 1):
                         indexes.append(i)
+                day = str(record.field('weekday').value()).split('_')
+                weekday = day[0]
+                weeknum = int(day[1])
+
             values = {}
             for index in indexes:
                 q = QSqlQuery("SELECT name FROM tasks WHERE rowid ='"+str(query.value(index + 1))+"'")
@@ -263,7 +273,7 @@ class MainWindow(QMainWindow):
                 values[index] = q.value(0)
 
             if values:
-                self.mainLayout.table.setItemsColumn(values, weekdays.index(weekday))
+                self.mainLayout.tab.setValues(values, weekdays.index(weekday), weeknum)
         #
         #
         ################
