@@ -1,5 +1,6 @@
 from PySide.QtGui import QTabWidget
 from PySide.QtCore import Slot
+
 from maintable import MainTable
 
 
@@ -13,9 +14,10 @@ class Tabs(QTabWidget):
         self.setTabsClosable(True)
         self.tabCloseRequested.connect(self.closeTab)
 
+
     def openTab(self, weeknum):
         """Opens tab of the specified number of week"""
-        print('Before', self.weeksopened)
+
         if weeknum not in self.weeksopened:
             table = MainTable(weeknum)
             table.changed.connect(self.addToNotSaved)
@@ -24,19 +26,21 @@ class Tabs(QTabWidget):
             self.weeksopened.append(weeknum)
         else:
             self.setCurrentIndex(self.weeksopened.index(weeknum))
-        print('After', self.weeksopened)
+
 
     def getNotSaved(self):
         return self.notsaved
 
     def getWidgetFromWeeknum(self, weeknum):
         """ Returns Maintable of a specified week if it is opened, else returns 0"""
-        print('Get widget stuff:', self.weeksopened)
+
         if weeknum not in self.weeksopened:
             return 0
         return self.widget(self.weeksopened.index(weeknum))
 
     def setValues(self, values, weekdayindex, weeknum):
+        if self.count() == 0:
+            self.weeksopened = []
         if weeknum not in self.weeksopened:
             self.openTab(weeknum)
         table = self.getWidgetFromWeeknum(weeknum)
@@ -46,7 +50,8 @@ class Tabs(QTabWidget):
     def closeTab(self, tabindex):
         weeknum = self.widget(tabindex).getWeeknum()
         if weeknum in self.notsaved:
-            return
+            main_window = self.parent().parent().parent().parent()  # I know it's ugly
+            main_window.save()
         self.weeksopened.remove(weeknum)
         self.removeTab(tabindex)
 

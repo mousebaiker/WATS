@@ -1,20 +1,18 @@
 # -*- coding: utf-8 -*-
 import sys
+import datetime
 
 from PySide.QtCore import *
 
 from database import *
-from maintable import *
 from tasks_widget import *
 from evaluator import *
 from dialogs import *
 from tabs import Tabs
 import language
-import paths
-import datetime
-import os
 import helpers
 import globals
+import save
 
 
 class Layout(QWidget):
@@ -31,7 +29,7 @@ class Layout(QWidget):
         self.calendar.setMaximumHeight(200)
         self.calendar.selectionChanged.connect(self.tabCheck)
 
-        self.table = MainTable(1)
+
         ##Layouts
         self.vb = QVBoxLayout()
         ## Splitters
@@ -43,10 +41,10 @@ class Layout(QWidget):
 
         #Keeping track of changed and not currently saved tables
         self.notsaved = []
-    def initTasks(self):
+
+    def initTasks(self, statuses):
         """Initializes and fills the task widget"""
 
-        statuses = getStatuses()
         stats = []
         for status in statuses:
             group = TaskGroup(status)
@@ -92,9 +90,10 @@ class Layout(QWidget):
         if event.button() != Qt.RightButton:
             return
         if self.dragging:
-            position = event.pos() - QPoint(self.taskwidget.geometry().width() + 55, 30)
-            if self.table.itemAt(position) is not None:
-                self.table.itemAt(position).setText(self.dragtext)
+            position = event.pos() - QPoint(self.taskwidget.geometry().width() + 55, 55)
+            table = self.tab.currentWidget()
+            if table.itemAt(position) is not None:
+                table.itemAt(position).setText(self.dragtext)
         self.dragging = False
 
     def tabCheck(self):
@@ -168,116 +167,11 @@ class MainWindow(QMainWindow):
   #
   ## <End> Functions handling  menu buttons signals
 
-    @helpers.filemove('save')
     def save(self):
-        """"Saves the state of the program and moves the save file to specified place"""
+        save.save(self.mainLayout)
 
-        # Create a file if there is no previous save
-        # else move db to current folder to save
-        if not os.path.isfile(paths.savePath):
-            # Create txt and write down the first day of usage
-            savefile = open(paths.savePath, mode = 'w')
-            savefile.write(str(globals.DAYFIRST.toordinal()))
-            savefile.close()
-
-        filename = os.path.basename(paths.savePath)[:-8]
-    ## Saving tasks widget block
-    #
-        self.connectTrigger(filename)
-        truncate()
-        groups = self.mainLayout.taskwidget.getGroups()
-
-        for group in groups:
-            query = QSqlQuery()
-            query.prepare("INSERT INTO status (name) VALUES (:name)")
-            query.bindValue(":name", group.getName())
-            query.exec_()
-
-            query = QSqlQuery("SELECT rowid FROM status WHERE name = '"+group.getName() + "' ")
-            query.next()
-            id_ = query.value(0)
-
-            for task in group:
-                query = QSqlQuery()
-                query.prepare("INSERT INTO tasks (name, status) VALUES (:name, :id)")
-                query.bindValue(":name", task.getTask())
-                query.bindValue(":id", id_)
-                query.exec_()
-    #
-    #
-    ################
-
-    ##Saving maintable block
-    #
-        for weeknum in self.mainLayout.tab.notsaved:
-            table = self.mainLayout.tab.getWidgetFromWeeknum(weeknum)
-            weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-            for weekday in weekdays:
-                tasks = table.getTasks(weekday)
-                if tasks:
-                    fields = ''
-                    values = ''
-                    for time in tasks:
-                        query = QSqlQuery("SELECT rowid FROM tasks WHERE name ='" + tasks[time] + "'")
-                        query.next()
-                        tasks[time] = query.value(0)
-                        fields += '"' + time + '"' + ','
-                        values += str(tasks[time]) + ','
-                    fields = 'weekday,' + fields[:-1]
-                    values = '"'+weekday + '_' + str(weeknum) + '"' + ', ' + values[:-1]
-                    request = 'INSERT INTO main (' + fields + ') VALUES (' + values + ')'
-                    query = QSqlQuery()
-                    query.exec_(request)
-        print('Saved')
-    #
-    #
-    #
-    ################
-
-        # Restoring the original state
-        dropConnection()
-
-    @helpers.filemove('load')
     def load(self):
-        """"Loads the file and restores the saved state"""
-
-        # Restore the first day of usage
-        globals.DAYFIRST = datetime.date.fromordinal(int(open(paths.savePath).read().splitlines()[0]))
-
-        filename = os.path.basename(paths.savePath)[:-8]
-        self.connectTrigger(filename)
-        self.mainLayout.initTasks()
-        self.mainLayout.table.clearItems()
-        #### Loading main table
-        #
-        #
-        weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-
-        q = 'SELECT * FROM main'
-        query = QSqlQuery(q)
-        while query.next():
-            record = query.record()
-            indexes = []
-            if not record.isEmpty():
-                for i in range(0, 44):
-                    if not record.isNull(i + 1):
-                        indexes.append(i)
-                day = str(record.field('weekday').value()).split('_')
-                weekday = day[0]
-                weeknum = int(day[1])
-
-            values = {}
-            for index in indexes:
-                q = QSqlQuery("SELECT name FROM tasks WHERE rowid ='"+str(query.value(index + 1))+"'")
-                q.next()
-                values[index] = q.value(0)
-
-            if values:
-                self.mainLayout.tab.setValues(values, weekdays.index(weekday), weeknum)
-        #
-        #
-        ################
-        dropConnection()
+        save.load(self.mainLayout)
 
     def evaluate(self):
         """Sets up and shows the evaluation of schedule"""

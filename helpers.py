@@ -1,14 +1,17 @@
-import paths
 import shutil
 import os
+
 from PySide.QtGui import *
 from PySide.QtCore import QDate
+
+import paths
+
 
 # Decorator maker. Input: mode - 'save' or 'load'
 # Wraps the save or load function, making all the necessary file twerks before and after
 def filemove(mode):
     def decorator(func):
-        def wrapper(self):
+        def wrapper(layout):
             if mode == 'save':
                 if paths.savePath == '':
                         savedialog = QFileDialog()
@@ -36,7 +39,7 @@ def filemove(mode):
             else:
                 raise AttributeError
 
-            func(self)
+            func(layout)
             # Move everything back
             if not os.path.isfile(paths.savePath[:-8]):
                 shutil.move(os.path.basename(paths.savePath)[:-8], paths.savePath[:-8])
