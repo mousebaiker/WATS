@@ -7,17 +7,21 @@ from PySide.QtCore import QDate
 import paths
 
 
+SALT = str(QDate.currentDate().toString('ddMMyyyy'))
 # Decorator maker. Input: mode - 'save' or 'load'
 # Wraps the save or load function, making all the necessary file twerks before and after
 def filemove(mode):
     def decorator(func):
         def wrapper(layout):
+            dateadded = False
             if mode == 'save':
                 if paths.savePath == '':
                         savedialog = QFileDialog()
                         savedialog.setAcceptMode(QFileDialog.AcceptSave)
                         savedialog.setDefaultSuffix('txt')
                         savedialog.exec_()
+                        if savedialog.result() != QDialog.Accepted:
+                            return
                         paths.savePath = savedialog.selectedFiles()[0][:-4] + 'file.txt'
                 else:
                     if not os.path.isfile(os.path.basename(paths.savePath)[:-8]):
@@ -28,6 +32,8 @@ def filemove(mode):
                 loaddialog.setFileMode(QFileDialog.ExistingFile)
                 loaddialog.setFilter('*.txt')
                 loaddialog.exec_()
+                if loaddialog.result() != QDialog.Accepted:
+                    return
                 paths.savePath = loaddialog.selectedFiles()[0]
                 if os.path.split(paths.savePath)[0].replace('/', '\\') != os.path.abspath(os.path.curdir):
                     try:
@@ -36,13 +42,26 @@ def filemove(mode):
                         #TODO Error message box
                         print('File not found')
                         return
+                    except shutil.Error:
+                        try:
+                            shutil.move(paths.savePath[:-8], paths.savePath[:-8] + SALT)
+                            shutil.move(paths.savePath[:-8] + SALT, os.curdir)
+                            dateadded = True
+                        except shutil.Error:
+                            print('Unable to move file')
+                            return
+
+
             else:
                 raise AttributeError
 
             func(layout)
             # Move everything back
             if not os.path.isfile(paths.savePath[:-8]):
-                shutil.move(os.path.basename(paths.savePath)[:-8], paths.savePath[:-8])
+                if dateadded:
+                    shutil.move(os.path.basename(paths.savePath)[:-8] + SALT, paths.savePath[:-8])
+                else:
+                    shutil.move(os.path.basename(paths.savePath)[:-8], paths.savePath[:-8])
         return wrapper
     return decorator
 
