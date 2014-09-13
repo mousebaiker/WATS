@@ -2,16 +2,13 @@
 import sys
 import datetime
 
-from PySide.QtCore import *
-
 from database import *
 from tasks_widget import *
-from evaluator import *
 from dialogs import *
 from tabs import Tabs
 import language
 import helpers
-import globals
+import global_vars
 import save
 
 
@@ -80,9 +77,8 @@ class Layout(QWidget):
         rightclick = event.pos()
         scroll = self.scrollarea.verticalScrollBar().value()
         self.rightclickpos = rightclick + QPoint(0, scroll)
-        if self.taskwidget.isItemAtPoint(self.rightclickpos):
-            self.dragging = True
-            self.dragtext = self.taskwidget.getText(self.rightclickpos)
+        self.dragging = True
+        self.dragtext = self.taskwidget.getText(self.rightclickpos)
 
     def mouseReleaseEvent(self, event):
         """The 'mouse-release' part of tasks drag&drop feature"""
@@ -98,7 +94,7 @@ class Layout(QWidget):
 
     def tabCheck(self):
         selectdate = self.calendar.selectedDate()
-        startdate = helpers.fromDatetoQDate(globals.DAYFIRST)
+        startdate = helpers.fromDatetoQDate(global_vars.DAYFIRST)
         weeknum = helpers.getWeekDif(startdate, selectdate) + 1
         self.tab.openTab(weeknum)
 
@@ -112,7 +108,7 @@ class MainWindow(QMainWindow):
         #Generate the first day of usage
         today = datetime.date.today()
         dayT = today - datetime.timedelta(today.weekday())
-        globals.DAYFIRST = dayT
+        global_vars.DAYFIRST = dayT
 
     def draw(self):
         """Main output function"""
@@ -176,13 +172,15 @@ class MainWindow(QMainWindow):
     def evaluate(self):
         """Sets up and shows the evaluation of schedule"""
 
-        self.evWindow = EvaluatorWindow(self.mainLayout.table)
+        # self.evWindow = EvaluatorWindow(self.mainLayout.table)
+        #
+        # days = language.languagedict['lang_mainTableHeaders']
+        # self.evWindow.generate(self.mainLayout.taskwidget.groups, days)
+        #
+        # self.evWindow.draw()
 
-        days = language.languagedict['lang_mainTableHeaders']
-        self.evWindow.generate(self.mainLayout.taskwidget.groups, days)
-
-        self.evWindow.draw()
-
+        self.eval = evaluationDialog(self.mainLayout.tab.currentWidget().getWeeknum())
+        self.eval.exec_()
     def loadlanguage(self):
         """Loads and updates the language of program elements - the language file is chosen via dialog"""
 
@@ -193,7 +191,8 @@ class MainWindow(QMainWindow):
     def updatelanguage(self):
         """Updates the language of already loaded elements"""
 
-        self.mainLayout.table.setHorizontalHeaderLabels(language.languagedict['lang_mainTableHeaders'])
+        global_vars.WEEKDAYS = language.languagedict['lang_mainTableHeaders']
+        self.mainLayout.table.setHorizontalHeaderLabels(global_vars.WEEKDAYS)
         self.loadlanguageAct.setText(language.languagedict['lang_languageMenuItem'])
         self.saveAct.setText(language.languagedict['lang_saveMenuItem'])
         self.loadAct.setText(language.languagedict['lang_loadMenuItem'])

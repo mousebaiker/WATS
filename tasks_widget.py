@@ -1,10 +1,13 @@
+from PySide.QtCore import QPoint, QSize
+
 from dialogs import *
 from paths import *
-from PySide.QtCore import QPoint, QSize
+import helpers
 
 
 class Task(object):
     """Internal representation of task"""
+
     def __init__(self, task):
         self.task = task
 
@@ -23,6 +26,7 @@ class Task(object):
 
 class TaskGroup(object):
     """Internal representation of task group that contains tasks"""
+
     def __init__(self, name):
         self.name = name
         self.tasks = []
@@ -52,6 +56,7 @@ class TaskGroup(object):
 
 class TaskGroupWidget(QWidget):
     """Widget dedicated displaying tasks and handling addition and deletion of these tasks """
+
     def __init__(self, name):
         super(TaskGroupWidget, self).__init__()
         self.name = name
@@ -120,12 +125,13 @@ class TaskGroupWidget(QWidget):
         """Returns the name of the tasks on given position. Used for drag&drop"""
 
         for item in range(self.groupContLayout.count()):
-            if self.groupContLayout.itemAt(item).geometry().contains(position - QPoint(0,20)):
+            if self.groupContLayout.itemAt(item).geometry().contains(position - QPoint(0, 20)):
                 return self.groupContLayout.itemAt(item).widget().text()
 
 
 class TasksWidget(QWidget):
     """Main widget for displaying groups of tasks and handling addition and deletion of these"""
+
     def __init__(self, groups):
         super(TasksWidget, self).__init__()
 
@@ -181,30 +187,17 @@ class TasksWidget(QWidget):
 
         self.setLayout(self.widgetLayout)
 
-    ##Drag and drop
-
-    def itemAtPoint(self, position):
-        """Returns item at given position"""
-        for item in range(self.mainLayout.count()):
-            if self.mainLayout.itemAt(item).geometry().contains(position):
-                return self.mainLayout.itemAt(item)
-        return 0
-
-    def isItemAtPoint(self, position):
-        """Returns True if there is a task label on given position, otherwise False"""
-        for item in range(self.mainLayout.count()):
-            if self.mainLayout.itemAt(item).geometry().contains(position):
-                return True
-        return False
+    # #Drag and drop
 
     def getText(self, position):
         """Returns text of a label on given position if such exists, otherwise returns empty string"""
-        if self.isItemAtPoint(position):
-            item = self.itemAtPoint(position)
+        if helpers.isItemAtPoint(position, self.mainLayout):
+            item = helpers.itemAtPoint(position, self.mainLayout)
             if item.widget() != 0:
                 position -= QPoint(item.widget().x(), item.widget().y())
                 return item.widget().getText(position)
         return ''
+
     ##End Drag and drop
 
     ##Tasks functions
@@ -233,7 +226,7 @@ class TasksWidget(QWidget):
                 group.addTask(Task(taskname))
 
 
-    def delTask(self,groupname,taskname):
+    def delTask(self, groupname, taskname):
         """Deletes task from the specified group"""
         for group in self.groups:
             if groupname == group.getName():

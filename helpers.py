@@ -8,6 +8,7 @@ import paths
 
 
 SALT = str(QDate.currentDate().toString('ddMMyyyy'))
+
 # Decorator maker. Input: mode - 'save' or 'load'
 # Wraps the save or load function, making all the necessary file twerks before and after
 def filemove(mode):
@@ -75,6 +76,7 @@ def fromDatetoQDate(date):
     """Returns the QDate object generated from datatime.date object"""
     return QDate.fromString(date.isoformat(), 'yyyy-MM-dd')
 
+
 def getWeekDif(first, last):
     """Returns how many weeks are between 2 given days
     first, last - tuples (weekNum, year)"""
@@ -89,3 +91,19 @@ def getWeekDif(first, last):
         return firstyearsum + lastyearsum + middleyearsum
     elif first.weekNumber()[1] == last.weekNumber()[1]:
         return last.weekNumber()[0] - first.weekNumber()[0]
+
+
+def isItemAtPoint(position, layout):
+    """Returns True if there is a task label on given position, otherwise False"""
+    for item in range(layout.count()):
+        if layout.itemAt(item).geometry().contains(position):
+            return True
+    return False
+
+
+def itemAtPoint(position, layout):
+    """Returns item at given position"""
+    for item in range(layout.count()):
+        if layout.itemAt(item).geometry().contains(position):
+            return layout.itemAt(item)
+    return 0

@@ -4,7 +4,7 @@ import datetime
 from PySide.QtSql import QSqlQuery
 
 import helpers
-import globals
+import global_vars
 import paths
 import database
 
@@ -18,12 +18,12 @@ def save(layout):
     if not os.path.isfile(paths.savePath):
         # Create txt and write down the first day of usage
         savefile = open(paths.savePath, mode='w')
-        savefile.write(str(globals.DAYFIRST.toordinal()))
+        savefile.write(str(global_vars.DAYFIRST.toordinal()))
         savefile.close()
 
     filename = os.path.basename(paths.savePath)[:-8]
-    # # Saving tasks widget block
-    #
+
+    # Saving tasks widget block
     database.setConnection(filename)
     database.truncate()
     groups = layout.taskwidget.getGroups()
@@ -44,12 +44,8 @@ def save(layout):
             query.bindValue(":name", task.getTask())
             query.bindValue(":id", id_)
             query.exec_()
-        #
-        #
-        ################
 
-        ##Saving maintable block
-        #
+    # Saving maintable
     for weeknum in layout.tab.notsaved:
         table = layout.tab.getWidgetFromWeeknum(weeknum)
         weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -70,12 +66,18 @@ def save(layout):
                 query = QSqlQuery()
                 query.exec_(request)
     layout.tab.notsaved = []
-    print('Saved')
-    #
-    #
-    #
-    ################
 
+
+    # Saving evaluation values
+    for week in global_vars.EVAL_VALUES.keys():
+        val = str(week) + ', '
+        for value in global_vars.EVAL_VALUES[week]:
+            val += str(value) + ', '
+        request = 'INSERT INTO evaluation VALUES(' + val[:-2] + ')'
+        query = QSqlQuery()
+        query.exec_(request)
+
+    print('Saved')
     # Restoring the original state
     database.dropConnection()
 
@@ -85,16 +87,17 @@ def load(layout):
     """"Loads the file and restores the saved state"""
 
     # Restore the first day of usage
-    globals.DAYFIRST = datetime.date.fromordinal(int(open(paths.savePath).read().splitlines()[0]))
+    global_vars.DAYFIRST = datetime.date.fromordinal(int(open(paths.savePath).read().splitlines()[0]))
 
     filename = os.path.basename(paths.savePath)[:-8]
     database.setConnection(filename)
     layout.initTasks(database.getStatuses())
-    layout.tab.clear()
+    layout.tab.clearAll()
     # ### Loading main table
     #
     #
     weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    opened = False
 
     q = 'SELECT * FROM main'
     query = QSqlQuery(q)
@@ -116,8 +119,27 @@ def load(layout):
             values[index] = q.value(0)
 
         if values:
+            opened = True
             layout.tab.setValues(values, weekdays.index(weekday), weeknum)
+
+    if not opened:
+        layout.tab.openTab(1)
     #
     #
     ################
+
+    # Loading evaluation values
+    #
+    q = 'SELECT * from evaluation'
+    query = QSqlQuery(q)
+    while query.next():
+        record = query.record()
+        if not record.isEmpty():
+            week = record.field('week').value()
+            values = []
+            for day in global_vars.WEEKDAYS:
+                values.append(record.field(day).value())
+        global_vars.EVAL_VALUES[week] = values
+
+
     database.dropConnection()

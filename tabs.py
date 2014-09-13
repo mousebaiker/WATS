@@ -14,6 +14,10 @@ class Tabs(QTabWidget):
         self.setTabsClosable(True)
         self.tabCloseRequested.connect(self.closeTab)
 
+    def clearAll(self):
+        self.weeksopened = []
+        self.notsaved = []
+        self.clear()
 
     def openTab(self, weeknum):
         """Opens tab of the specified number of week"""

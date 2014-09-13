@@ -1,7 +1,9 @@
 from PySide.QtSql import *
 
+import global_vars
 
-def setConnection(name, username = 0, password = 0):
+
+def setConnection(name, username=0, password=0):
     """Creates db using specified name and creates suitable empty tables"""
 
     dab = QSqlDatabase.addDatabase("QSQLITE")
@@ -14,8 +16,8 @@ def setConnection(name, username = 0, password = 0):
         return False
     time = ''
     for i in range(0, 1440, 30):
-        hours = i//60
-        minutes = i - hours*60
+        hours = i // 60
+        minutes = i - hours * 60
         hours = '0' + str(hours)
         minutes = '0' + str(minutes)
         hours = hours[-2:]
@@ -31,6 +33,13 @@ def setConnection(name, username = 0, password = 0):
 
     q_status = 'CREATE TABLE status(name varchar, comments text)'
     query.exec_(q_status)
+
+    days = ''
+    for day in global_vars.WEEKDAYS:
+        days += day + ' integer, '
+
+    q_eval = 'CREATE TABLE evaluation(week integer, ' + days[:-2] + ')'
+    query.exec_(q_eval)
     return True
 
 

@@ -1,7 +1,9 @@
 from PySide.QtGui import *
-from PySide.QtCore import QTime
+from PySide.QtCore import QTime, Qt, Slot
 
 from language import languagedict
+import global_vars
+import helpers
 
 
 class addTaskDialog(QDialog):
@@ -95,6 +97,7 @@ class addGroupDialog(QDialog):
     def check(self):
         if self.text.text() != '':
             self.accept()
+
 
 class delGroupDialog(QDialog):
     """Dialog for deleting groups"""
@@ -215,3 +218,120 @@ class addBlockDialog(QDialog):
         self.tasks.clear()
         for task in status:
             self.tasks.addItem(task.getTask())
+
+
+class evaluationDialog(QDialog):
+    def __init__(self, weeknum):
+        super(evaluationDialog, self).__init__()
+        self.weeknum = weeknum
+
+        self.slidervalues = global_vars.EVAL_VALUES.get(self.weeknum, [0 for i in range(7)])
+
+        # Layouts
+        self.arrows = QHBoxLayout()
+        self.buttons = QHBoxLayout()
+        self.vbox = QVBoxLayout()
+
+        # Upper label
+        self.label = QLabel()
+        self.label.setText('<div align = "center"><h3> Неделя №' + str(self.weeknum) + '</h3></div>')
+
+        # Weekdays list
+        self.weekday = QLabel()
+        self.weekday.setText('<h4>' + global_vars.WEEKDAYS[0] + '</h4>')
+        self.weekdaynum = 0
+
+        # Slider
+        self.slider = QSlider(Qt.Horizontal)
+        self.slider.setMinimum(0)
+        self.slider.setMaximum(10)
+        self.slider.setTickInterval(1)
+        self.slider.setValue(self.slidervalues[0])
+        self.slider.valueChanged.connect(self.sliderChanged)
+
+        self.sliderlabel = QLabel(
+            '<div align = "center"><font size = "14">' + str(self.slider.value()) + '</font></div>')
+
+        # Buttons
+        self.ok = QPushButton(languagedict['lang_OKButton'])
+        self.ok.clicked.connect(self.okPush)
+        self.cancel = QPushButton(languagedict['lang_CancelButton'])
+        self.cancel.clicked.connect(self.reject)
+
+        # Arrows
+        leftarrowImage = QPixmap.fromImage(QImage('icons/left_arrow.png'))
+        self.leftarrow = QLabel()
+        self.leftarrow.setPixmap(leftarrowImage)
+
+        rightarrowImage = QPixmap.fromImage(QImage('icons/right_arrow.png'))
+        self.rightarrow = QLabel()
+        self.rightarrow.setPixmap(rightarrowImage)
+
+        # Layouts set-up
+        # Buttons
+        self.buttons.addWidget(self.ok)
+        self.buttons.addWidget(self.cancel)
+
+        # Arrows
+        self.arrows.addWidget(self.leftarrow)
+        self.arrows.addStretch(1)
+        self.arrows.addWidget(self.weekday)
+        self.arrows.addStretch(1)
+        self.arrows.addWidget(self.rightarrow)
+
+        # Main elements
+        self.vbox.addWidget(self.label)
+        self.vbox.addStretch(1)
+        self.vbox.addLayout(self.arrows)
+        self.vbox.addStretch(1)
+        self.vbox.addWidget(self.sliderlabel)
+        self.vbox.addWidget(self.slider)
+        self.vbox.addLayout(self.buttons)
+
+        self.setLayout(self.vbox)
+        self.setWindowTitle("Оценить")
+
+    def okPush(self):
+        global_vars.EVAL_VALUES[self.weeknum] = self.slidervalues
+        self.accept()
+
+    def mousePressEvent(self, event):
+        if event.buttons() != Qt.LeftButton:
+            return
+        position = event.pos()
+        if helpers.isItemAtPoint(position, self.vbox):
+            item = helpers.itemAtPoint(position, self.vbox)
+
+            # Repeat until we get an actual item
+            while (isinstance(item, QLayout)):
+                prevlayout = item
+                item = helpers.itemAtPoint(position, item)
+            if isinstance(item, QWidgetItem) and isinstance(item.widget(), QLabel):
+                index = prevlayout.indexOf(item.widget())
+                if index == 0:
+                    self.shifttoleft()
+                if index == 4:
+                    self.shifttoright()
+
+    def shift(self, value):
+        try:
+            global_vars.WEEKDAYS[self.weekdaynum + value]
+        except IndexError:
+            return
+
+        self.weekdaynum += value
+        self.weekday.setText('<h4>' + global_vars.WEEKDAYS[self.weekdaynum] + '</h4>')
+        self.slider.setValue(self.slidervalues[self.weekdaynum])
+
+    def shifttoleft(self):
+        self.shift(-1)
+
+
+    def shifttoright(self):
+        self.shift(1)
+
+    @Slot(int)
+    def sliderChanged(self, value):
+        self.sliderlabel.setText('<div align = "center"><font size = "14">' + str(value) + '</font></div>')
+        self.slidervalues[self.weekdaynum] = value
+
