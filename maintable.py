@@ -1,7 +1,7 @@
 from PySide.QtGui import *
+from PySide.QtCore import Signal
 
 import language
-from PySide.QtCore import Signal
 
 
 class MainTable(QTableWidget):
@@ -41,7 +41,7 @@ class MainTable(QTableWidget):
 
         return self.weeknum
 
-    def getTasks(self, weekday):
+    def getTasks(self, weekday, nulvalues=False):
         """ Returns the dictionary of (time:task) pairs for a given day of the week"""
 
         if weekday not in self.columnheaders:
@@ -53,8 +53,16 @@ class MainTable(QTableWidget):
             item = self.item(row, column).text()
             if item != '':
                 result[time] = item
+            else:
+                if nulvalues:
+                    result[time] = '__None__'
             row += 1
         return result
+
+    def getTasksOrdered(self, weekday, nulvalues=False):
+        tasksdict = self.getTasks(weekday, nulvalues)
+        tasks = [tasksdict[time] for time in sorted(tasksdict.keys())]
+        return tasks
 
     def setItemsColumn(self, items, column):
         """Sets items for a whole column. Column is presented as index"""

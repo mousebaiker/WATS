@@ -10,6 +10,9 @@ import language
 import helpers
 import global_vars
 import save
+import evaluator
+import neuron
+import seq_gen
 
 
 class Layout(QWidget):
@@ -120,45 +123,47 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('WATS?')
         self.show()
 
-    def connectTrigger(self, name):
-        if setConnection(name):
-            label = 'Yeahaaaaa'
-        else:
-            label = 'Oh, NO'
-        self.statusBar().showMessage(label)
-
     def initializeMenu(self):
         """Initializes the main menu and hooks up all the necessary signals"""
 
         # Actions
-            #File
+        # File
         self.loadlanguageAct = QAction(language.languagedict['lang_languageMenuItem'], self)
         self.saveAct = QAction(language.languagedict['lang_saveMenuItem'], self)
         self.loadAct = QAction(language.languagedict['lang_loadMenuItem'], self)
-        self.evaluateAct = QAction(language.languagedict['lang_evaluateMenuItem'], self)
 
-            #Edit
+        # Edit
         self.addblockAct = QAction(language.languagedict['lang_addblockMenuItem'], self)
+
+        # Evaluation
+        self.evaluateAct = QAction(language.languagedict['lang_evaluateMenuItem'], self)
+        self.generateAct = QAction('Сгенерировать расписание', self)
+
 
         self.loadlanguageAct.triggered.connect(self.loadlanguage)
         self.saveAct.triggered.connect(self.save)
         self.loadAct.triggered.connect(self.load)
-        self.evaluateAct.triggered.connect(self.evaluate)
         self.addblockAct.triggered.connect(self.addblock)
+        self.evaluateAct.triggered.connect(self.evaluate)
+        self.generateAct.triggered.connect(self.generateday)
 
         self.statusBar()
         self.menu = self.menuBar()
 
-        #File
+        # File
         self.filemenu = self.menu.addMenu(language.languagedict['lang_fileMenu'])
         self.filemenu.addAction(self.saveAct)
         self.filemenu.addAction(self.loadAct)
-        self.filemenu.addAction(self.evaluateAct)
         self.filemenu.addAction(self.loadlanguageAct)
 
-        #Edit
+        # Edit
         self.editmenu = self.menu.addMenu(language.languagedict['lang_editMenu'])
         self.editmenu.addAction(self.addblockAct)
+
+        # Evaluation
+        self.evalmenu = self.menu.addMenu('Оценить')
+        self.evalmenu.addAction(self.evaluateAct)
+        self.evalmenu.addAction(self.generateAct)
   #
   #
   ## <End> Functions handling  menu buttons signals
@@ -179,8 +184,62 @@ class MainWindow(QMainWindow):
         #
         # self.evWindow.draw()
 
-        self.eval = evaluationDialog(self.mainLayout.tab.currentWidget().getWeeknum())
-        self.eval.exec_()
+        evalworker = evaluator.Evaluator(self.mainLayout.tab.currentWidget())
+        empty = evalworker.countEmptyPercentforColumns()
+        constr = []
+        for i in range(len(empty)):
+            constr.append(10 - int(empty[i] / 10))
+
+        evald = evaluationDialog(self.mainLayout.tab.currentWidget().getWeeknum(), constr)
+        evald.exec_()
+
+    def teachnetwork(self):
+        """Trains the network with evaluation values. Function expects that at least 2 weeks were evaluated"""
+        if len(global_vars.EVAL_VALUES) < 2:
+            print('Заполните хотя бы 2 недели')
+            return
+        groups = self.mainLayout.taskwidget.getGroups()
+        firstlayer = 48 + (len(groups) + 1)
+        self.network = neuron.NeuralNetwork([firstlayer, 4, 1])
+        self.network.generate_nodes()
+        self.network.generate_weights()
+
+
+        # Look through every evaluated week and teach the network
+        for week in global_vars.EVAL_VALUES:
+            table = self.mainLayout.tab.getWidgetFromWeeknum(week)
+            evaler = evaluator.Evaluator(table)
+
+            for weekday, value in enumerate(global_vars.EVAL_VALUES[week]):
+                taskfrequency = []
+                for row, timesplit in enumerate(global_vars.TIMESPLITS):
+                    taskfrequency.append(evaler.countTaskPercent(table.item(row, weekday).text(), row))
+                groupfrequency = [evaler.countGroupTasksPercent(group, weekday) for group in groups]
+                nonecount = 1 - sum(groupfrequency)
+                groupfrequency.append(nonecount)
+                inputvec = taskfrequency + groupfrequency
+                resvec = [value]
+                self.network.teach(inputvec, resvec)
+
+    def generateday(self):
+        """Generates a day from two most recent evaluated weeks"""
+        weeks = sorted(global_vars.EVAL_VALUES.keys(), reverse=True)[:2]
+        tasks = [self.mainLayout.tab.getWidgetFromWeeknum(week).getTasksOrdered('Monday') for week in weeks]
+        tasks_perm = seq_gen.opt_gen_seq(tasks[0], tasks[1])
+        self.teachnetwork()
+        groups = self.mainLayout.taskwidget.getGroups()
+
+        inputs = []
+        for task in tasks_perm:
+            tasks_count = [helpers.countGroupTasksInList(group, task) / 48 for group in groups]
+            none_count = 1 - sum(tasks_count)
+            inputs.append(tasks_count + [none_count])
+        print(inputs)
+        day = max(inputs, key=self.network.input)
+        print(inputs.count(day))
+        print(day)
+        print(tasks_perm[inputs.index(day)])
+
     def loadlanguage(self):
         """Loads and updates the language of program elements - the language file is chosen via dialog"""
 
@@ -227,7 +286,7 @@ class MainWindow(QMainWindow):
 
             start = start.toString('hh:mm')
             end = end.toString('hh:mm')
-            self.mainLayout.table.setItemTime(task, start, end, weekday)
+            self.mainLayout.tab.currentWidget().setItemTime(task, start, end, weekday)
 
 
 def main():

@@ -36,11 +36,19 @@ class Tabs(QTabWidget):
         return self.notsaved
 
     def getWidgetFromWeeknum(self, weeknum):
-        """ Returns Maintable of a specified week if it is opened, else returns 0"""
+        """ Returns Maintable of a specified week """
 
+        wasopened = True
         if weeknum not in self.weeksopened:
-            return 0
+            self.openTab(weeknum)
+            wasopened = False
+            if not wasopened:
+                self.mainLayout.tab.closeWeek(weeknum)
+
         return self.widget(self.weeksopened.index(weeknum))
+
+    def getWeeksOpened(self):
+        return self.weeksopened
 
     def setValues(self, values, weekdayindex, weeknum):
         if self.count() == 0:
@@ -49,6 +57,14 @@ class Tabs(QTabWidget):
             self.openTab(weeknum)
         table = self.getWidgetFromWeeknum(weeknum)
         table.setItemsColumn(values, weekdayindex)
+
+    def closeWeek(self, weeknum):
+        if weeknum in self.notsaved:
+            main_window = self.parent().parent().parent().parent()
+            main_window.save()
+        self.tabindex = self.weeksopened.index(weeknum)
+        self.removeTab(self.tabindex)
+        self.weeksopened.remove(weeknum)
 
     @Slot(int)
     def closeTab(self, tabindex):

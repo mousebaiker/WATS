@@ -107,3 +107,11 @@ def itemAtPoint(position, layout):
         if layout.itemAt(item).geometry().contains(position):
             return layout.itemAt(item)
     return 0
+
+
+def countGroupTasksInList(group, array):
+    count = 0
+    for val in array:
+        if val in group:
+            count += 1
+    return count

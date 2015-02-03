@@ -221,9 +221,10 @@ class addBlockDialog(QDialog):
 
 
 class evaluationDialog(QDialog):
-    def __init__(self, weeknum):
+    def __init__(self, weeknum, upperconstraints):
         super(evaluationDialog, self).__init__()
         self.weeknum = weeknum
+        self.upperconstraints = upperconstraints
 
         self.slidervalues = global_vars.EVAL_VALUES.get(self.weeknum, [0 for i in range(7)])
 
@@ -244,7 +245,7 @@ class evaluationDialog(QDialog):
         # Slider
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setMinimum(0)
-        self.slider.setMaximum(10)
+        self.slider.setMaximum(self.upperconstraints[0])
         self.slider.setTickInterval(1)
         self.slider.setValue(self.slidervalues[0])
         self.slider.valueChanged.connect(self.sliderChanged)
@@ -303,6 +304,7 @@ class evaluationDialog(QDialog):
             item = helpers.itemAtPoint(position, self.vbox)
 
             # Repeat until we get an actual item
+            prevlayout = QHBoxLayout()
             while (isinstance(item, QLayout)):
                 prevlayout = item
                 item = helpers.itemAtPoint(position, item)
@@ -321,6 +323,7 @@ class evaluationDialog(QDialog):
 
         self.weekdaynum += value
         self.weekday.setText('<h4>' + global_vars.WEEKDAYS[self.weekdaynum] + '</h4>')
+        self.slider.setMaximum(self.upperconstraints[self.weekdaynum])
         self.slider.setValue(self.slidervalues[self.weekdaynum])
 
     def shifttoleft(self):

@@ -19,14 +19,27 @@ class Evaluator(object):
 
     def countEmpty(self):
         """Returns the number of empty cells in table"""
+        return sum(self.countEmptyforColumns())
 
-        empty = 0
-        for row in range(self.rowsnum):
-            for column in range(self.columnsnum):
+    def countEmptyPercent(self):
+        return helpers.countPercent(self.countEmpty(), self.total())
+
+    def countEmptyforColumns(self):
+        """Returns the number of empty cells in table for each row
+           result = [empty_row1, empty_row2, ...]
+        """
+        result = []
+        for column in range(self.columnsnum):
+            empty = 0
+            for row in range(self.rowsnum):
                 text = self.table.item(row, column).text()
                 if not text:
                     empty += 1
-        return empty
+            result.append(empty)
+        return result
+
+    def countEmptyPercentforColumns(self):
+        return [helpers.countPercent(i, self.rowsnum) for i in self.countEmptyforColumns()]
 
     def countGroupTasks(self, group, columnindex):
         """Returns the number of tasks of given group in given column"""
@@ -38,6 +51,20 @@ class Evaluator(object):
                 items += 1
         return items
 
+    def countGroupTasksPercent(self, group, columnindex):
+        return self.countGroupTasks(group, columnindex) / self.rowsnum
+
+    def countTask(self, task, rowindex):
+
+        items = 0
+        for column in range(self.columnsnum):
+            text = self.table.item(rowindex, column).text()
+            if text == task:
+                items += 1
+        return items
+
+    def countTaskPercent(self, task, rowindex):
+        return self.countTask(task, rowindex) / self.columnsnum
 
 class EvaluatorWindow(QWidget):
     """Implementation of graphical part and output of evaluator"""
