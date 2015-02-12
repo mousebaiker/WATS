@@ -75,9 +75,9 @@ def getTasks(status):
     """Returns all the tasks for the specified status"""
 
     idkey = 'SELECT rowid FROM status WHERE name ="' + status + '"'
-    query = QSqlQuery(id)
+    query = QSqlQuery(idkey)
     query.next()
-    id = str(query.value(0))
+    idkey = str(query.value(0))
     q = 'SELECT name FROM tasks WHERE status ="' + idkey + '"'
     query = QSqlQuery(q)
     result = []

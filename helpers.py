@@ -115,3 +115,7 @@ def countGroupTasksInList(group, array):
         if val in group:
             count += 1
     return count
+
+
+def transpose(x):
+    return list(map(list, zip(*x)))

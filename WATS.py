@@ -193,52 +193,54 @@ class MainWindow(QMainWindow):
         evald = evaluationDialog(self.mainLayout.tab.currentWidget().getWeeknum(), constr)
         evald.exec_()
 
-    def teachnetwork(self):
+    def teachnetwork(self, tasks):
         """Trains the network with evaluation values. Function expects that at least 2 weeks were evaluated"""
         if len(global_vars.EVAL_VALUES) < 2:
             print('Заполните хотя бы 2 недели')
             return
-        groups = self.mainLayout.taskwidget.getGroups()
-        firstlayer = 48 + (len(groups) + 1)
-        self.network = neuron.NeuralNetwork([firstlayer, 4, 1])
-        self.network.generate_nodes()
+
+        firstlayer = len(tasks) + 1
+        self.network = neuron.NeuralNetwork([firstlayer, 5, 1], 0.001)
         self.network.generate_weights()
 
-
         # Look through every evaluated week and teach the network
-        for week in global_vars.EVAL_VALUES:
-            table = self.mainLayout.tab.getWidgetFromWeeknum(week)
-            evaler = evaluator.Evaluator(table)
+        inputvalues = []
+        resultvalues = []
+        for weeknum in global_vars.EVAL_VALUES:
+            week = self.mainLayout.tab.getWidgetFromWeeknum(weeknum)
+            for i, day in enumerate(global_vars.WEEKDAYS):
+                daytasks = week.getTasksOrdered(day, nulvalues=True)
+                inputvalues.append([daytasks.count(task) / 48 for task in tasks + ['__None__']])
+                resultvalues.append([global_vars.EVAL_VALUES[weeknum][i] / 10])
+                self.network.teach(inputvalues, resultvalues, 0.3)
 
-            for weekday, value in enumerate(global_vars.EVAL_VALUES[week]):
-                taskfrequency = []
-                for row, timesplit in enumerate(global_vars.TIMESPLITS):
-                    taskfrequency.append(evaler.countTaskPercent(table.item(row, weekday).text(), row))
-                groupfrequency = [evaler.countGroupTasksPercent(group, weekday) for group in groups]
-                nonecount = 1 - sum(groupfrequency)
-                groupfrequency.append(nonecount)
-                inputvec = taskfrequency + groupfrequency
-                resvec = [value]
-                self.network.teach(inputvec, resvec)
 
     def generateday(self):
         """Generates a day from two most recent evaluated weeks"""
-        weeks = sorted(global_vars.EVAL_VALUES.keys(), reverse=True)[:2]
-        tasks = [self.mainLayout.tab.getWidgetFromWeeknum(week).getTasksOrdered('Monday') for week in weeks]
-        tasks_perm = seq_gen.opt_gen_seq(tasks[0], tasks[1])
-        self.teachnetwork()
-        groups = self.mainLayout.taskwidget.getGroups()
 
-        inputs = []
-        for task in tasks_perm:
-            tasks_count = [helpers.countGroupTasksInList(group, task) / 48 for group in groups]
-            none_count = 1 - sum(tasks_count)
-            inputs.append(tasks_count + [none_count])
-        print(inputs)
-        day = max(inputs, key=self.network.input)
-        print(inputs.count(day))
+        groups = self.mainLayout.taskwidget.getGroups()
+        tasks = []
+        for group in groups:
+            for task in group.getTasks():
+                tasks.append(task)
+
+        self.teachnetwork(tasks)
+
+        weeks = sorted(global_vars.EVAL_VALUES.keys(), reverse=True)[:2]
+        day = [self.mainLayout.tab.getWidgetFromWeeknum(week).getTasksOrdered('Monday') for week in weeks]
         print(day)
-        print(tasks_perm[inputs.index(day)])
+        tasks_perm = seq_gen.opt_gen_seq(day[0], day[1])
+
+        print(len(tasks_perm))
+        inputvalues = []
+        for perm in tasks_perm:
+            inputvalues.append([perm.count(task) / 48 for task in tasks + ['__None__']])
+
+        result = self.network.input(inputvalues)
+        stresult = sorted(result, reverse=True)
+        print(result.count(stresult[2]))
+        print(tasks_perm[result.index(stresult[2])])
+       
 
     def loadlanguage(self):
         """Loads and updates the language of program elements - the language file is chosen via dialog"""
