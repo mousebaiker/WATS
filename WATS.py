@@ -128,16 +128,16 @@ class MainWindow(QMainWindow):
 
         # Actions
         # File
-        self.loadlanguageAct = QAction(language.languagedict['lang_languageMenuItem'], self)
-        self.saveAct = QAction(language.languagedict['lang_saveMenuItem'], self)
-        self.loadAct = QAction(language.languagedict['lang_loadMenuItem'], self)
+        self.loadlanguageAct = QAction(language.languagedict['languageMenuItem'], self)
+        self.saveAct = QAction(language.languagedict['saveMenuItem'], self)
+        self.loadAct = QAction(language.languagedict['loadMenuItem'], self)
 
         # Edit
-        self.addblockAct = QAction(language.languagedict['lang_addblockMenuItem'], self)
+        self.addblockAct = QAction(language.languagedict['addblockMenuItem'], self)
 
         # Evaluation
-        self.evaluateAct = QAction(language.languagedict['lang_evaluateMenuItem'], self)
-        self.generateAct = QAction('Сгенерировать расписание', self)
+        self.evaluateAct = QAction(language.languagedict['evaluateMenuItem'], self)
+        self.generateAct = QAction(language.languagedict['generateMenuItem'], self)
 
         self.loadlanguageAct.triggered.connect(self.loadlanguage)
         self.saveAct.triggered.connect(self.save)
@@ -150,17 +150,17 @@ class MainWindow(QMainWindow):
         self.menu = self.menuBar()
 
         # File
-        self.filemenu = self.menu.addMenu(language.languagedict['lang_fileMenu'])
+        self.filemenu = self.menu.addMenu(language.languagedict['fileMenu'])
         self.filemenu.addAction(self.saveAct)
         self.filemenu.addAction(self.loadAct)
         self.filemenu.addAction(self.loadlanguageAct)
 
         # Edit
-        self.editmenu = self.menu.addMenu(language.languagedict['lang_editMenu'])
+        self.editmenu = self.menu.addMenu(language.languagedict['editMenu'])
         self.editmenu.addAction(self.addblockAct)
 
         # Evaluation
-        self.evalmenu = self.menu.addMenu('Оценить')
+        self.evalmenu = self.menu.addMenu(language.languagedict['evalMenu'])
         self.evalmenu.addAction(self.evaluateAct)
         self.evalmenu.addAction(self.generateAct)
 
@@ -219,7 +219,7 @@ class MainWindow(QMainWindow):
                 daystogen = global_vars.WEEKDAYS
             else:
                 daystogen.append(
-                    global_vars.WEEKDAYS[language.languagedict['lang_mainTableHeaders'].index(dialog.getDay())])
+                    global_vars.WEEKDAYS[language.languagedict['mainTableHeaders'].index(dialog.getDay())])
 
             groups = self.mainLayout.taskwidget.getGroups()
             tasks = []
@@ -233,19 +233,16 @@ class MainWindow(QMainWindow):
                 for day in daystogen:
                     weeks = sorted(global_vars.EVAL_VALUES.keys(), reverse=True)[-2:]
                     daytasks = [self.mainLayout.tab.getWidgetFromWeeknum(week).getTasksOrdered(day) for week in weeks]
-                    print(daytasks)
                     tasks_perm = seq_gen.opt_gen_seq(daytasks[0], daytasks[1])
 
                     print(len(tasks_perm))
                     inputvalues = []
                     for perm in tasks_perm:
                         inputvalues.append([perm.count(task) / 48 for task in tasks + ['__None__']])
-                    print('Input:', inputvalues[0])
+
                     result = self.network.input(inputvalues)
                     sortresult = sorted(result, reverse=True)
-                    print(result.count(sortresult[2]))
-                    print(tasks_perm[result.index(sortresult[2])])
-                    print(result[0], result[1], result[2])
+
 
                     sorttasks_perm = sorted(tasks_perm, key=lambda x: result[tasks_perm.index(x)][0])
                     dialog = ShowDayDialog(day, sorttasks_perm)
@@ -277,15 +274,21 @@ class MainWindow(QMainWindow):
     def updatelanguage(self):
         """Updates the language of already loaded elements"""
 
-        global_vars.WEEKDAYS = language.languagedict['lang_mainTableHeaders']
-        self.mainLayout.tab.currentWidget().setHorizontalHeaderLabels(global_vars.WEEKDAYS)
-        self.loadlanguageAct.setText(language.languagedict['lang_languageMenuItem'])
-        self.saveAct.setText(language.languagedict['lang_saveMenuItem'])
-        self.loadAct.setText(language.languagedict['lang_loadMenuItem'])
-        self.evaluateAct.setText(language.languagedict['lang_evaluateMenuItem'])
-        self.filemenu.setTitle(language.languagedict['lang_fileMenu'])
-        self.addblockAct.setText(language.languagedict['lang_addblockMenuItem'])
-        self.editmenu.setTitle(language.languagedict['lang_editMenu'])
+        global_vars.WEEKDAYSLANGUAGE = language.languagedict['mainTableHeaders']
+        self.mainLayout.tab.updatelanguage()
+
+        self.loadlanguageAct.setText(language.languagedict['languageMenuItem'])
+        self.saveAct.setText(language.languagedict['saveMenuItem'])
+        self.loadAct.setText(language.languagedict['loadMenuItem'])
+        self.evaluateAct.setText(language.languagedict['evaluateMenuItem'])
+        self.filemenu.setTitle(language.languagedict['fileMenu'])
+
+        self.addblockAct.setText(language.languagedict['addblockMenuItem'])
+        self.editmenu.setTitle(language.languagedict['editMenu'])
+
+        self.evaluateAct.setText(language.languagedict['evaluateMenuItem'])
+        self.generateAct.setText(language.languagedict['generateMenuItem'])
+        self.evalmenu.setTitle(language.languagedict['evalMenu'])
 
     def addblock(self):
         """Adds the tasks onto main table - the properties of the block are received through dialog"""
@@ -323,6 +326,7 @@ def main():
     mainGui = MainWindow()
     mainGui.initializeMenu()
     mainGui.draw()
+    mainGui.updatelanguage()
     sys.exit(app.exec_())
 
 if __name__ == '__main__':

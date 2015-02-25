@@ -1,96 +1,101 @@
 # Main Table Headers
-lang_mainTableHeaders = [u'Monday',u'Tuesday',u'Wednesday',u'Thursday',u'Friday',u'Saturday',u'Sunday']
+mainTableHeaders = [u'Monday',u'Tuesday',u'Wednesday',u'Thursday',u'Friday',u'Saturday',u'Sunday']
 
 
 # Меню:
 #    Фаил:
-lang_fileMenu = u'File'
+fileMenu = u'File'
 
 #       Загрузить
-lang_loadMenuItem = u'Load'
+loadMenuItem = u'Load'
 
 #       Сохранить
-lang_saveMenuItem = u'Save'
+saveMenuItem = u'Save'
 
 
 #   Правка:
-lang_editMenu = u'Edit'
+editMenu = u'Edit'
 
 #        Добавить
-lang_addblockMenuItem = u'Add'
+addblockMenuItem = u'Add'
 
 
-#   Оценка:
+#   Сгенерировать:
+evalMenu = u'Generate'
 #       Оценить
-lang_evaluateMenuItem = u'Evaluate'
+evaluateMenuItem = u'Evaluate'
+generateMenuItem = u'Generate the schedule'
 
 #   Языковое расширение
-lang_languageMenuItem = u'Choose language package'
+languageMenuItem = u'Choose language package'
 
 
 # Статусы:
 #   Заголовок диалогового окна при добавлении статуса
-lang_addStatusTitle = u'Add status'
+addStatusTitle = u'Add status'
 
 #       Текст при добавлении статуса
-lang_addStatusText = u'Enter status name'
+addStatusText = u'Enter status name'
 
 #   Заголовок диалогового окна при удалении статуса
-lang_delStatusTitle = u'Delete status'
+delStatusTitle = u'Delete status'
 
 #       Текст при удалении статуса
-lang_delStatusText = u'Choose status to delete'
+delStatusText = u'Choose status to delete'
 
 
 # Задания:
 #   Заголовок диалогового окна при добавлении задания
-lang_addTaskTitle = u'Add task'
+addTaskTitle = u'Add task'
 
 #       Текст при добавлении задания
-lang_addTaskText = u'Enter task name'
+addTaskText = u'Enter task name'
 
 #   Заголовок диалогового окна при удалении задания
-lang_delTaskTitle = u'Delete task'
+delTaskTitle = u'Delete task'
 
 #       Текст при удалении задания
-lang_delTaskText = u'Choose task to delete'
+delTaskText = u'Choose task to delete'
 
-
+# Основная таблицa
+WeekHeader = u'Week'
 #Кнопки:
 #ОК
-lang_OKButton = u'OK'
+OKButton = u'OK'
 
 #Отмена
-lang_CancelButton = u'Cancel'
+CancelButton = u'Cancel'
 
 
 #Оценка
 #Заголовок:
-lang_evalTitle = u'Evaluation'
-
-#Количество "пустоты"(начало):
-lang_evalEmptyStart = u'You have not completed '
-#Количеств "пустоты"(конец):
-lang_evalEmptyEnd = u'% of your schedule.'
-
-#Группы(начало):
-lang_evalGroupsStart = u'Tasks of "'
-#Группы(середина):
-lang_evalGroupsMiddle = u'" group are present in '
-#Группы(конец):
-lang_evalGroupsEnd = u'% of your schedule'
+evalTitle = u'Evaluation'
 
 
 #Диалог добавления блока
 #Заголовок
-lang_addBlockTitle = u'Add tasks'
+addBlockTitle = u'Add tasks'
 #Подпись статуса
-lang_addBlockStatus = u'Status'
+addBlockStatus = u'Status'
 #Подпись задания
-lang_addBlockTask = u'Task'
+addBlockTask = u'Task'
 #Подпись дня недели
-lang_addBlockWeekday = u'Weekday'
+addBlockWeekday = u'Weekday'
 #Подпись времени
-lang_addBlockTime = u'Time'
+addBlockTime = u'Time'
 #Ошибка
-lang_addBlockTimeError = u'Time of the start should be no less than time of the end!'
+addBlockTimeError = u'Time of the start should be no less than time of the end!'
+
+
+# Диалог генерации дня
+# Заголовок
+generateTitle = u'Generate'
+# Главная надпись
+generateLabel = u'Choose the day'
+#Кнопка генерации недели
+generateWholeWeek = u'Generate \n week'
+
+
+# Диалог показа дня
+# Заголовок
+showDayTitle = u'Choose the schedule'

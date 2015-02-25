@@ -77,7 +77,7 @@ class EvaluatorWindow(QWidget):
         self.layoutWidget = QWidget()
         self.scroll = QScrollArea()
         self.setLayout(self.scrollLayout)
-        self.setWindowTitle(language.languagedict['lang_evalTitle'])
+        self.setWindowTitle(language.languagedict['evalTitle'])
         self.resize(550, 300)
 
     def generate(self, groups, days):
@@ -101,8 +101,8 @@ class EvaluatorWindow(QWidget):
 
         emtprcLabel = QLabel()
         emtprcLabel.setText('<div align = "center" size = "4"><font size = "4">' +
-                            language.languagedict['lang_evalEmptyStart'] + str(self.evaluationvalues['__EMPTY__']) +
-                            language.languagedict['lang_evalEmptyEnd'] + '</font></div>')
+                            language.languagedict['evalEmptyStart'] + str(self.evaluationvalues['__EMPTY__']) +
+                            language.languagedict['evalEmptyEnd'] + '</font></div>')
         emtprcLabel.setFrameStyle(QFrame.StyledPanel)
         emtprcLabel.setMaximumHeight(25)
         self.mainLayout.addWidget(emtprcLabel)
@@ -112,10 +112,10 @@ class EvaluatorWindow(QWidget):
             self.mainLayout.addWidget(daylabel)
             for group in self.evaluationvalues[day]:
                 if group != '__EMPTY__':
-                    label = QLabel(language.languagedict['lang_evalGroupsStart'] + group
-                                   + language.languagedict['lang_evalGroupsMiddle'] + str(
+                    label = QLabel(language.languagedict['evalGroupsStart'] + group
+                                   + language.languagedict['evalGroupsMiddle'] + str(
                         self.evaluationvalues[day][group])
-                                   + language.languagedict['lang_evalGroupsEnd'])
+                                   + language.languagedict['evalGroupsEnd'])
                     self.mainLayout.addWidget(label)
             self.mainLayout.addWidget(QLabel())
         self.layoutWidget.setLayout(self.mainLayout)

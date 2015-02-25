@@ -1,94 +1,100 @@
 # Заголовки главной таблицы
-lang_mainTableHeaders = [u'Понедельник',u'Вторник',u'Среда',u'Четверг',u'Пятница',u'Суббота',u'Воскресение']
+mainTableHeaders = [u'Понедельник',u'Вторник',u'Среда',u'Четверг',u'Пятница',u'Суббота',u'Воскресение']
 
 
 # Меню:
 #    Фаил:
-lang_fileMenu = u'Файл'
+fileMenu = u'Файл'
 
 #       Загрузить
-lang_loadMenuItem = u'Загрузить'
+loadMenuItem = u'Загрузить'
 
 #       Сохранить
-lang_saveMenuItem = u'Сохранить'
+saveMenuItem = u'Сохранить'
 
 
 #   Правка:
-lang_editMenu = u'Правка'
+editMenu = u'Правка'
 
 #        Добавить
-lang_addblockMenuItem = u'Добавить'
+addblockMenuItem = u'Добавить'
 
-#   Оценка:
+#   Сгенерировать:
+evalMenu = u'Сгенерировать'
 #       Оценить
-lang_evaluateMenuItem = u'Оценить'
+evaluateMenuItem = u'Оценить'
+generateMenuItem = u'Сгенерировать расписание'
 
 #   Языковое расширение
-lang_languageMenuItem = u'Загрузить языковое расширение'
+languageMenuItem = u'Загрузить языковое расширение'
 
 
 # Статусы:
 #   Заголовок диалогового окна при добавлении статуса
-lang_addStatusTitle = u'Добавить статус'
+addStatusTitle = u'Добавить статус'
 
 #       Текст при добавлении статуса
-lang_addStatusText = u'Введите название'
+addStatusText = u'Введите название'
 
 #   Заголовок диалогового окна при удалении статуса
-lang_delStatusTitle = u'Удалить статус'
+delStatusTitle = u'Удалить статус'
 
 #       Текст при удалении статуса
-lang_delStatusText = u'Выберите статус'
+delStatusText = u'Выберите статус'
 
 
 # Задания:
 #   Заголовок диалогового окна при добавлении задания
-lang_addTaskTitle = u'Добавить задание'
+addTaskTitle = u'Добавить задание'
 
 #       Текст при добавлении задания
-lang_addTaskText = u'Введите название'
+addTaskText = u'Введите название'
 
 #   Заголовок диалогового окна при удалении задания
-lang_delTaskTitle = u'Удалить задание'
+delTaskTitle = u'Удалить задание'
 
 #       Текст при удалении задания
-lang_delTaskText = u'Выберите задание'
+delTaskText = u'Выберите задание'
+
+# Основная таблица
+WeekHeader = u'Неделя'
 
 
 #Кнопки:
 #ОК
-lang_OKButton = u'ОК'
+OKButton = u'ОК'
 
 #Отмена
-lang_CancelButton = u'Отмена'
+CancelButton = u'Отмена'
 
 
 #Оценка
 #Заголовок:
-lang_evalTitle = u'Оценка'
+evalTitle = u'Оценка'
 
-#Количество "пустоты"(начало):
-lang_evalEmptyStart = u'Вы не заполнили '
-#Количеств "пустоты"(конец):
-lang_evalEmptyEnd = u'% вашего распорядка.'
-
-#Группы(начало):
-lang_evalGroupsStart = u'Задания группы "'
-#Группы(середина):
-lang_evalGroupsMiddle = u'" занимает '
-#Группы(конец):
-lang_evalGroupsEnd = u'% от вашего общего распорядка'
 
 #Диалог добавления блока
 #Заголовок
-lang_addBlockTitle = u'Добавить блок заданий'
+addBlockTitle = u'Добавить блок заданий'
 #Подпись статуса
-lang_addBlockStatus = u'Статус'
+addBlockStatus = u'Статус'
 #Подпись задания
-lang_addBlockTask = u'Задание'
+addBlockTask = u'Задание'
 #Подпись дня недели
-lang_addBlockWeekday = u'День недели'
+addBlockWeekday = u'День недели'
 #Подпись времени
-lang_addBlockTime = u'Время'
+addBlockTime = u'Время'
 #Ошибка
-lang_addBlockTimeError = u'Время начала должно быть не меньше времени конца!'
+addBlockTimeError = u'Время начала должно быть не меньше времени конца!'
+
+# Диалог генерации дня
+# Заголовок
+generateTitle = u'Сгенерировать'
+# Главная надпись
+generateLabel = u'Выберите день'
+#Кнопка генерации недели
+generateWholeWeek = u'Сгенерировать \n неделю'
+
+# Диалог показа дня
+# Заголовок
+showDayTitle = u'Выбор расписания'

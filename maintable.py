@@ -14,7 +14,7 @@ class MainTable(QTableWidget):
         self.setColumnCount(7)
         self.rowsheaders = []
         self.columnheaders = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        self.columnheaderslan = language.languagedict['lang_mainTableHeaders']
+        self.columnheaderslan = language.languagedict['mainTableHeaders']
         for i in range(0, 1440, 30):
             hours = i//60
             minutes = i - hours*60
@@ -24,7 +24,7 @@ class MainTable(QTableWidget):
             minutes = minutes[-2:]
             self.rowsheaders.append(str(hours) + ':' + str(minutes))
 
-        self.generate(self.columnheaders, self.rowsheaders)
+        self.generate(self.columnheaderslan, self.rowsheaders)
 
         self.setCurrentCell(12, 0)
         self.acceptDrops()
@@ -93,7 +93,7 @@ class MainTable(QTableWidget):
         """Sets items for a given amount of time. Start and end are examples of strings(headers of table)"""
 
         fromto = self.rowsheaders[self.rowsheaders.index(start): self.rowsheaders.index(end) + 1]
-        column = self.columnheaderslan.index(columnname)
+        column = language.languagedict['mainTableHeaders'].index(columnname)
 
         for rowname in fromto:
             row = self.rowsheaders.index(rowname)

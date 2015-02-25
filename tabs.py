@@ -1,6 +1,9 @@
 from PySide.QtGui import QTabWidget
 from PySide.QtCore import Slot
 
+import global_vars
+import language
+
 from maintable import MainTable
 
 
@@ -25,7 +28,7 @@ class Tabs(QTabWidget):
         if weeknum not in self.weeksopened:
             table = MainTable(weeknum)
             table.changed.connect(self.addToNotSaved)
-            index = self.addTab(table, 'Week ' + str(weeknum))
+            index = self.addTab(table, language.languagedict['WeekHeader'] + ' ' + str(weeknum))
             self.setCurrentIndex(index)
             self.weeksopened.append(weeknum)
         else:
@@ -65,6 +68,12 @@ class Tabs(QTabWidget):
         self.tabindex = self.weeksopened.index(weeknum)
         self.removeTab(self.tabindex)
         self.weeksopened.remove(weeknum)
+
+    def updatelanguage(self):
+        for i in range(len(self.weeksopened)):
+            weeknum = self.tabText(i)[-1]
+            self.setTabText(i, language.languagedict['WeekHeader'] + ' ' + str(weeknum))
+            self.widget(i).setHorizontalHeaderLabels(global_vars.WEEKDAYSLANGUAGE)
 
     @Slot(int)
     def closeTab(self, tabindex):

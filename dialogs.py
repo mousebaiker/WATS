@@ -11,12 +11,12 @@ class addTaskDialog(QDialog):
     """Dialog for adding tasks"""
     def __init__(self):
         super(addTaskDialog, self).__init__()
-        self.label = QLabel(languagedict['lang_addTaskText'])
+        self.label = QLabel(languagedict['addTaskText'])
         self.text = QLineEdit()
 
-        self.ok = QPushButton(languagedict['lang_OKButton'])
+        self.ok = QPushButton(languagedict['OKButton'])
         self.ok.clicked.connect(self.check)
-        self.cancel = QPushButton(languagedict['lang_CancelButton'])
+        self.cancel = QPushButton(languagedict['CancelButton'])
         self.cancel.clicked.connect(self.reject)
 
         self.buttons = QHBoxLayout()
@@ -30,7 +30,7 @@ class addTaskDialog(QDialog):
         self.mainLayout.addLayout(self.buttons)
 
         self.setLayout(self.mainLayout)
-        self.setWindowTitle(languagedict['lang_addTaskTitle'])
+        self.setWindowTitle(languagedict['addTaskTitle'])
 
     def check(self):
         if self.text.text() != '':
@@ -41,14 +41,14 @@ class delTaskDialog(QDialog):
     """Dialog for deleting tasks"""
     def __init__(self, tasks):
         super(delTaskDialog, self).__init__()
-        self.label = QLabel(languagedict['lang_delTaskText'])
+        self.label = QLabel(languagedict['delTaskText'])
         self.params = QComboBox()
         for task in tasks:
             self.params.addItem(task.text())
 
-        self.ok = QPushButton(languagedict['lang_OKButton'])
+        self.ok = QPushButton(languagedict['OKButton'])
         self.ok.clicked.connect(self.check)
-        self.cancel = QPushButton(languagedict['lang_CancelButton'])
+        self.cancel = QPushButton(languagedict['CancelButton'])
         self.cancel.clicked.connect(self.reject)
 
         self.buttons = QHBoxLayout()
@@ -62,7 +62,7 @@ class delTaskDialog(QDialog):
         self.mainLayout.addLayout(self.buttons)
 
         self.setLayout(self.mainLayout)
-        self.setWindowTitle(languagedict['lang_delTaskTitle'])
+        self.setWindowTitle(languagedict['delTaskTitle'])
 
     def check(self):
         if self.params.currentText() != '':
@@ -74,11 +74,11 @@ class addGroupDialog(QDialog):
     def __init__(self):
         super(addGroupDialog, self).__init__()
 
-        self.label = QLabel(languagedict['lang_addStatusText'])
+        self.label = QLabel(languagedict['addStatusText'])
         self.text = QLineEdit()
-        self.ok = QPushButton(languagedict['lang_OKButton'])
+        self.ok = QPushButton(languagedict['OKButton'])
         self.ok.clicked.connect(self.check)
-        self.cancel = QPushButton(languagedict['lang_CancelButton'])
+        self.cancel = QPushButton(languagedict['CancelButton'])
         self.cancel.clicked.connect(self.reject)
 
         self.buttons = QHBoxLayout()
@@ -92,7 +92,7 @@ class addGroupDialog(QDialog):
         self.mainLayout.addLayout(self.buttons)
 
         self.setLayout(self.mainLayout)
-        self.setWindowTitle(languagedict['lang_addStatusTitle'])
+        self.setWindowTitle(languagedict['addStatusTitle'])
 
     def check(self):
         if self.text.text() != '':
@@ -104,14 +104,14 @@ class delGroupDialog(QDialog):
     def __init__(self, groups):
         super(delGroupDialog, self).__init__()
 
-        self.label = QLabel(languagedict['lang_delStatusText'])
+        self.label = QLabel(languagedict['delStatusText'])
 
         self.params = QComboBox()
         for group in groups:
             self.params.addItem(group.getName())
-        self.ok = QPushButton(languagedict['lang_OKButton'])
+        self.ok = QPushButton(languagedict['OKButton'])
         self.ok.clicked.connect(self.check)
-        self.cancel = QPushButton(languagedict['lang_CancelButton'])
+        self.cancel = QPushButton(languagedict['CancelButton'])
         self.cancel.clicked.connect(self.reject)
 
         self.buttons = QHBoxLayout()
@@ -125,7 +125,7 @@ class delGroupDialog(QDialog):
         self.mainLayout.addLayout(self.buttons)
 
         self.setLayout(self.mainLayout)
-        self.setWindowTitle(languagedict['lang_delStatusTitle'])
+        self.setWindowTitle(languagedict['delStatusTitle'])
 
     def check(self):
         if self.params.currentText() != '':
@@ -148,30 +148,30 @@ class addBlockDialog(QDialog):
         self.buttons = QHBoxLayout()
 
         # Main Elements
-        self.statusLabel = QLabel(languagedict['lang_addBlockStatus'])
+        self.statusLabel = QLabel(languagedict['addBlockStatus'])
         self.status = QComboBox()
         for status in groups:
             self.status.addItem(status.getName())
         self.status.activated.connect(self.updatetasks)
 
-        self.tasksLabel = QLabel(languagedict['lang_addBlockTask'])
+        self.tasksLabel = QLabel(languagedict['addBlockTask'])
         self.tasks = QComboBox()
 
-        self.weekdayLabel = QLabel(languagedict['lang_addBlockWeekday'])
+        self.weekdayLabel = QLabel(languagedict['addBlockWeekday'])
         self.weekday = QComboBox()
-        for weekday in languagedict['lang_mainTableHeaders']:
+        for weekday in languagedict['mainTableHeaders']:
             self.weekday.addItem(weekday)
 
-        self.timeLabel = QLabel(languagedict['lang_addBlockTime'])
+        self.timeLabel = QLabel(languagedict['addBlockTime'])
         self.start = QTimeEdit(QTime(6, 0))
         self.start.setDisplayFormat('hh:mm')
         self.end = QTimeEdit(QTime(7, 0))
         self.end.setDisplayFormat('hh:mm')
 
         # Buttons
-        self.ok = QPushButton(languagedict['lang_OKButton'])
+        self.ok = QPushButton(languagedict['OKButton'])
         self.ok.clicked.connect(self.check)
-        self.cancel = QPushButton(languagedict['lang_CancelButton'])
+        self.cancel = QPushButton(languagedict['CancelButton'])
         self.cancel.clicked.connect(self.reject)
 
         # Laying out
@@ -200,13 +200,13 @@ class addBlockDialog(QDialog):
 
         # Main settings
         self.setLayout(self.topLayout)
-        self.setWindowTitle(languagedict['lang_addBlockTitle'])
+        self.setWindowTitle(languagedict['addBlockTitle'])
 
     def check(self):
         if self.start.time() <= self.end.time():
             self.accept()
         else:
-            self.errorstatus.setText(languagedict['lang_addBlockTimeError'])
+            self.errorstatus.setText(languagedict['addBlockTimeError'])
 
 
     def updatetasks(self):
@@ -305,7 +305,9 @@ class EvaluationDialog(QDialog):
 
         # Upper label
         self.label = QLabel()
-        self.label.setText('<div align = "center"><h3> Неделя №' + str(self.weeknum) + '</h3></div>')
+        self.label.setText('<div align = "center"><h3>'
+                           + languagedict['WeekHeader'] + ' '
+                           + str(self.weeknum) + '</h3></div>')
 
         # Slider
         self.slider = QSlider(Qt.Horizontal)
@@ -319,9 +321,9 @@ class EvaluationDialog(QDialog):
             '<div align = "center"><font size = "14">' + str(self.slider.value()) + '</font></div>')
 
         # Buttons
-        self.ok = QPushButton(languagedict['lang_OKButton'])
+        self.ok = QPushButton(languagedict['OKButton'])
         self.ok.clicked.connect(self.okPush)
-        self.cancel = QPushButton(languagedict['lang_CancelButton'])
+        self.cancel = QPushButton(languagedict['CancelButton'])
         self.cancel.clicked.connect(self.reject)
 
         # Layouts set-up
@@ -330,7 +332,7 @@ class EvaluationDialog(QDialog):
         self.buttons.addWidget(self.cancel)
 
         # Scroller
-        self.scroller = Scroller(global_vars.WEEKDAYS)
+        self.scroller = Scroller(languagedict['mainTableHeaders'])
         self.scroller.changed.connect(self.scrollerChanged)
 
         # Main elements
@@ -343,7 +345,7 @@ class EvaluationDialog(QDialog):
         self.vbox.addLayout(self.buttons)
 
         self.setLayout(self.vbox)
-        self.setWindowTitle("Оценить")
+        self.setWindowTitle(languagedict['evaluateMenuItem'])
 
     def okPush(self):
         global_vars.EVAL_VALUES[self.weeknum] = self.slidervalues
@@ -351,14 +353,14 @@ class EvaluationDialog(QDialog):
 
     @Slot(str)
     def scrollerChanged(self, weekday):
-        num = global_vars.WEEKDAYS.index(weekday)
+        num = global_vars.WEEKDAYSLANGUAGE.index(weekday)
         self.slider.setMaximum(self.upperconstraints[num])
         self.slider.setValue(self.slidervalues[num])
 
     @Slot(int)
     def sliderChanged(self, value):
         self.sliderlabel.setText('<div align = "center"><font size = "14">' + str(value) + '</font></div>')
-        self.slidervalues[global_vars.WEEKDAYS.index(self.scroller.gettext())] = value
+        self.slidervalues[global_vars.WEEKDAYSLANGUAGE.index(self.scroller.gettext())] = value
 
 
 class GenerateDayDialog(QDialog):
@@ -368,17 +370,17 @@ class GenerateDayDialog(QDialog):
         self.isweek = False
 
         # Header
-        self.title = 'Выберите день'
+        self.title = languagedict['generateLabel']
         self.titlelabel = QLabel('<div align = "center"><h3> ' + self.title + '</h3></div>')
         # Options
         self.options = QComboBox()
-        for day in languagedict['lang_mainTableHeaders']:
+        for day in languagedict['mainTableHeaders']:
             self.options.addItem(day)
 
         # Buttons
-        self.ok = QPushButton(languagedict['lang_OKButton'])
-        self.cancel = QPushButton(languagedict['lang_CancelButton'])
-        self.generateweek = QPushButton('Сгенерировать\n неделю')
+        self.ok = QPushButton(languagedict['OKButton'])
+        self.cancel = QPushButton(languagedict['CancelButton'])
+        self.generateweek = QPushButton(languagedict['generateWholeWeek'])
         self.generateweek.setMaximumWidth(100)
         self.ok.clicked.connect(self.accept)
         self.cancel.clicked.connect(self.reject)
@@ -403,7 +405,7 @@ class GenerateDayDialog(QDialog):
         self.vbox.addLayout(self.buttons)
 
         self.setLayout(self.vbox)
-        self.setWindowTitle('Сгенерировать')
+        self.setWindowTitle(languagedict['generateTitle'])
 
     def isWeek(self):
         return self.isweek
@@ -433,14 +435,14 @@ class ShowDayDialog(QDialog):
 
         # Table
         self.table = MainTable(-1)
-        self.table.columnheaders = [day]
+        self.table.columnheaders = [global_vars.WEEKDAYSLANGUAGE[global_vars.WEEKDAYS.index(day)]]
         self.table.generate(self.table.columnheaders, self.table.rowsheaders)
         self.table.setColumnWidth(0, 230)
 
         # Buttons
-        self.ok = QPushButton(languagedict['lang_OKButton'])
+        self.ok = QPushButton(languagedict['OKButton'])
         self.ok.clicked.connect(self.accept)
-        self.cancel = QPushButton(languagedict['lang_CancelButton'])
+        self.cancel = QPushButton(languagedict['CancelButton'])
         self.cancel.clicked.connect(self.reject)
 
         self.buttons.addWidget(self.ok)
@@ -451,8 +453,8 @@ class ShowDayDialog(QDialog):
         self.mainLayout.addLayout(self.buttons)
 
         self.setLayout(self.mainLayout)
-        self.setWindowTitle('Выбор дня')
-        self.setMinimumSize(300, 700)
+        self.setWindowTitle(languagedict['showDayTitle'])
+        self.setMinimumSize(300, 500)
 
         self.updateDay(0)
 

@@ -141,5 +141,4 @@ def load(layout):
                 values.append(record.field(day).value())
         global_vars.EVAL_VALUES[week] = values
 
-
     database.dropConnection()
