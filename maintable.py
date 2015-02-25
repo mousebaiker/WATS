@@ -1,5 +1,5 @@
 from PySide.QtGui import *
-from PySide.QtCore import Signal
+from PySide.QtCore import Signal, Slot
 
 import language
 
@@ -23,18 +23,29 @@ class MainTable(QTableWidget):
             hours = hours[-2:]
             minutes = minutes[-2:]
             self.rowsheaders.append(str(hours) + ':' + str(minutes))
-        self.setVerticalHeaderLabels(self.rowsheaders)
-        self.setHorizontalHeaderLabels(self.columnheaderslan)
-        for i in range(len(self.rowsheaders)):
-            for c in range(len(self.columnheaders)):
-                newItem = QTableWidgetItem()
-                self.setItem(i, c, newItem)
+
+        self.generate(self.columnheaders, self.rowsheaders)
 
         self.setCurrentCell(12, 0)
         self.acceptDrops()
 
-        #Signal binding
+        # Signal binding
         self.cellChanged.connect(self.onChange)
+        self.cellDoubleClicked.connect(self.onDoubleClick)
+
+    def generate(self, columnheaders, rowsheaders):
+        self.clear()
+
+        self.setRowCount(len(rowsheaders))
+        self.setVerticalHeaderLabels(rowsheaders)
+
+        self.setColumnCount(len(columnheaders))
+        self.setHorizontalHeaderLabels(columnheaders)
+
+        for i in range(len(self.rowsheaders)):
+            for c in range(len(self.columnheaders)):
+                newItem = QTableWidgetItem()
+                self.setItem(i, c, newItem)
 
     def getWeeknum(self):
         """Return the number of the week that table is currently represents"""
@@ -53,8 +64,7 @@ class MainTable(QTableWidget):
             item = self.item(row, column).text()
             if item != '':
                 result[time] = item
-            else:
-                if nulvalues:
+            elif nulvalues:
                     result[time] = '__None__'
             row += 1
         return result
@@ -66,9 +76,9 @@ class MainTable(QTableWidget):
 
     def setItemsColumn(self, items, column):
         """Sets items for a whole column. Column is presented as index"""
-
         for row in items:
             self.item(row, column).setText(items[row])
+
 
     def setItemRowCol(self, item, rowname, columnname):
         """Sets item for a particular row and column names.
@@ -94,5 +104,10 @@ class MainTable(QTableWidget):
             for column in range(self.columnCount()):
                 self.item(row,column).setText('')
 
+    @Slot()
     def onChange(self):
         self.changed.emit(self.weeknum)
+
+    @Slot(int, int)
+    def onDoubleClick(self, row, column):
+        self.item(row, column).setBackground(QBrush(QColor(255, 0, 0, 150)))

@@ -1,6 +1,7 @@
 from PySide.QtGui import *
-from PySide.QtCore import QTime, Qt, Slot
+from PySide.QtCore import QTime, Qt, Slot, Signal
 
+from maintable import MainTable
 from language import languagedict
 import global_vars
 import helpers
@@ -85,7 +86,6 @@ class addGroupDialog(QDialog):
         self.buttons.addWidget(self.ok)
         self.buttons.addWidget(self.cancel)
 
-
         self.mainLayout = QVBoxLayout()
         self.mainLayout.addWidget(self.label)
         self.mainLayout.addWidget(self.text)
@@ -119,7 +119,6 @@ class delGroupDialog(QDialog):
         self.buttons.addWidget(self.ok)
         self.buttons.addWidget(self.cancel)
 
-
         self.mainLayout = QVBoxLayout()
         self.mainLayout.addWidget(self.label)
         self.mainLayout.addWidget(self.params)
@@ -142,14 +141,13 @@ class addBlockDialog(QDialog):
         # Status
         self.errorstatus = QLabel()
 
-        ##Layouts
+        # Layouts
         self.topLayout = QVBoxLayout()
         self.mainLayout = QGridLayout()
         self.timeLayout = QHBoxLayout()
         self.buttons = QHBoxLayout()
 
-
-        ##Main Elements
+        # Main Elements
         self.statusLabel = QLabel(languagedict['lang_addBlockStatus'])
         self.status = QComboBox()
         for status in groups:
@@ -170,18 +168,18 @@ class addBlockDialog(QDialog):
         self.end = QTimeEdit(QTime(7, 0))
         self.end.setDisplayFormat('hh:mm')
 
-        ##Buttons
+        # Buttons
         self.ok = QPushButton(languagedict['lang_OKButton'])
         self.ok.clicked.connect(self.check)
         self.cancel = QPushButton(languagedict['lang_CancelButton'])
         self.cancel.clicked.connect(self.reject)
 
-        ##Laying out
-            #Time
+        # Laying out
+        # Time
         self.timeLayout.addWidget(self.start)
         self.timeLayout.addWidget(self.end)
 
-            #Central
+        # Central
         self.mainLayout.addWidget(self.statusLabel, 0, 0)
         self.mainLayout.addWidget(self.status, 1, 0)
         self.mainLayout.addWidget(self.tasksLabel, 0, 1)
@@ -191,11 +189,11 @@ class addBlockDialog(QDialog):
         self.mainLayout.addWidget(self.timeLabel, 2, 1)
         self.mainLayout.addLayout(self.timeLayout, 3, 1)
 
-            #Buttons
+        # Buttons
         self.buttons.addWidget(self.ok)
         self.buttons.addWidget(self.cancel)
 
-            #Top level
+        # Top level
         self.topLayout.addWidget(self.errorstatus)
         self.topLayout.addLayout(self.mainLayout)
         self.topLayout.addLayout(self.buttons)
@@ -220,9 +218,81 @@ class addBlockDialog(QDialog):
             self.tasks.addItem(task.getTask())
 
 
-class evaluationDialog(QDialog):
+class Scroller(QWidget):
+    changed = Signal(str)
+
+    def __init__(self, scrollvalues):
+        super(Scroller, self).__init__()
+
+        # Scroller values
+        self.scrollervalues = scrollvalues
+        self.curscrollindex = 0
+        self.curscrolltext = self.scrollervalues[self.curscrollindex]
+
+        # Mid label
+        self.curscrolllabel = QLabel('<h2>' + str(self.curscrolltext) + '</h2>')
+
+        # Arrows
+        leftarrowImage = QPixmap.fromImage(QImage('icons/left_arrow.png'))
+        self.leftarrow = QLabel()
+        self.leftarrow.setPixmap(leftarrowImage)
+
+        rightarrowImage = QPixmap.fromImage(QImage('icons/right_arrow.png'))
+        self.rightarrow = QLabel()
+        self.rightarrow.setPixmap(rightarrowImage)
+
+        self.arrows = QHBoxLayout()
+        self.arrows.addWidget(self.leftarrow)
+        self.arrows.addStretch(1)
+        self.arrows.addWidget(self.curscrolllabel)
+        self.arrows.addStretch(1)
+        self.arrows.addWidget(self.rightarrow)
+
+        self.mainlayout = QVBoxLayout()
+        self.mainlayout.addLayout(self.arrows)
+        self.setLayout(self.mainlayout)
+
+    def shift(self, value):
+        if (self.curscrollindex + value >= len(self.scrollervalues)) or (self.curscrollindex + value < 0):
+            return
+        self.curscrollindex += value
+        self.curscrolltext = self.scrollervalues[self.curscrollindex]
+        self.curscrolllabel.setText('<h2>' + str(self.curscrolltext) + '</h2>')
+        self.changed.emit(str(self.curscrolltext))
+
+    def shifttoleft(self):
+        self.shift(-1)
+
+    def shifttoright(self):
+        self.shift(1)
+
+    def gettext(self):
+        return self.curscrolltext
+
+
+    def mousePressEvent(self, event):
+        if event.buttons() != Qt.LeftButton:
+            return
+        position = event.pos()
+        if helpers.isItemAtPoint(position, self.mainlayout):
+            item = helpers.itemAtPoint(position, self.mainlayout)
+
+            # Repeat until we get an actual item
+            prevlayout = QHBoxLayout()
+            while isinstance(item, QLayout):
+                prevlayout = item
+                item = helpers.itemAtPoint(position, item)
+            if isinstance(item, QWidgetItem) and isinstance(item.widget(), QLabel):
+                index = prevlayout.indexOf(item.widget())
+                if index == 0:
+                    self.shifttoleft()
+                if index == 4:
+                    self.shifttoright()
+
+
+class EvaluationDialog(QDialog):
     def __init__(self, weeknum, upperconstraints):
-        super(evaluationDialog, self).__init__()
+        super(EvaluationDialog, self).__init__()
         self.weeknum = weeknum
         self.upperconstraints = upperconstraints
 
@@ -236,11 +306,6 @@ class evaluationDialog(QDialog):
         # Upper label
         self.label = QLabel()
         self.label.setText('<div align = "center"><h3> Неделя №' + str(self.weeknum) + '</h3></div>')
-
-        # Weekdays list
-        self.weekday = QLabel()
-        self.weekday.setText('<h4>' + global_vars.WEEKDAYS[0] + '</h4>')
-        self.weekdaynum = 0
 
         # Slider
         self.slider = QSlider(Qt.Horizontal)
@@ -259,31 +324,19 @@ class evaluationDialog(QDialog):
         self.cancel = QPushButton(languagedict['lang_CancelButton'])
         self.cancel.clicked.connect(self.reject)
 
-        # Arrows
-        leftarrowImage = QPixmap.fromImage(QImage('icons/left_arrow.png'))
-        self.leftarrow = QLabel()
-        self.leftarrow.setPixmap(leftarrowImage)
-
-        rightarrowImage = QPixmap.fromImage(QImage('icons/right_arrow.png'))
-        self.rightarrow = QLabel()
-        self.rightarrow.setPixmap(rightarrowImage)
-
         # Layouts set-up
         # Buttons
         self.buttons.addWidget(self.ok)
         self.buttons.addWidget(self.cancel)
 
-        # Arrows
-        self.arrows.addWidget(self.leftarrow)
-        self.arrows.addStretch(1)
-        self.arrows.addWidget(self.weekday)
-        self.arrows.addStretch(1)
-        self.arrows.addWidget(self.rightarrow)
+        # Scroller
+        self.scroller = Scroller(global_vars.WEEKDAYS)
+        self.scroller.changed.connect(self.scrollerChanged)
 
         # Main elements
         self.vbox.addWidget(self.label)
         self.vbox.addStretch(1)
-        self.vbox.addLayout(self.arrows)
+        self.vbox.addWidget(self.scroller)
         self.vbox.addStretch(1)
         self.vbox.addWidget(self.sliderlabel)
         self.vbox.addWidget(self.slider)
@@ -296,45 +349,125 @@ class evaluationDialog(QDialog):
         global_vars.EVAL_VALUES[self.weeknum] = self.slidervalues
         self.accept()
 
-    def mousePressEvent(self, event):
-        if event.buttons() != Qt.LeftButton:
-            return
-        position = event.pos()
-        if helpers.isItemAtPoint(position, self.vbox):
-            item = helpers.itemAtPoint(position, self.vbox)
-
-            # Repeat until we get an actual item
-            prevlayout = QHBoxLayout()
-            while (isinstance(item, QLayout)):
-                prevlayout = item
-                item = helpers.itemAtPoint(position, item)
-            if isinstance(item, QWidgetItem) and isinstance(item.widget(), QLabel):
-                index = prevlayout.indexOf(item.widget())
-                if index == 0:
-                    self.shifttoleft()
-                if index == 4:
-                    self.shifttoright()
-
-    def shift(self, value):
-        try:
-            global_vars.WEEKDAYS[self.weekdaynum + value]
-        except IndexError:
-            return
-
-        self.weekdaynum += value
-        self.weekday.setText('<h4>' + global_vars.WEEKDAYS[self.weekdaynum] + '</h4>')
-        self.slider.setMaximum(self.upperconstraints[self.weekdaynum])
-        self.slider.setValue(self.slidervalues[self.weekdaynum])
-
-    def shifttoleft(self):
-        self.shift(-1)
-
-
-    def shifttoright(self):
-        self.shift(1)
+    @Slot(str)
+    def scrollerChanged(self, weekday):
+        num = global_vars.WEEKDAYS.index(weekday)
+        self.slider.setMaximum(self.upperconstraints[num])
+        self.slider.setValue(self.slidervalues[num])
 
     @Slot(int)
     def sliderChanged(self, value):
         self.sliderlabel.setText('<div align = "center"><font size = "14">' + str(value) + '</font></div>')
-        self.slidervalues[self.weekdaynum] = value
+        self.slidervalues[global_vars.WEEKDAYS.index(self.scroller.gettext())] = value
+
+
+class GenerateDayDialog(QDialog):
+    def __init__(self):
+        super(GenerateDayDialog, self).__init__()
+        # Return variables
+        self.isweek = False
+
+        # Header
+        self.title = 'Выберите день'
+        self.titlelabel = QLabel('<div align = "center"><h3> ' + self.title + '</h3></div>')
+        # Options
+        self.options = QComboBox()
+        for day in languagedict['lang_mainTableHeaders']:
+            self.options.addItem(day)
+
+        # Buttons
+        self.ok = QPushButton(languagedict['lang_OKButton'])
+        self.cancel = QPushButton(languagedict['lang_CancelButton'])
+        self.generateweek = QPushButton('Сгенерировать\n неделю')
+        self.generateweek.setMaximumWidth(100)
+        self.ok.clicked.connect(self.accept)
+        self.cancel.clicked.connect(self.reject)
+        self.generateweek.clicked.connect(self.weekPush)
+
+        # Layouts
+        self.buttons = QHBoxLayout()
+        self.vbox = QVBoxLayout()
+
+        # Layout set up
+        # Buttons
+        self.buttons.addWidget(self.generateweek)
+        self.buttons.addStretch(1)
+        self.buttons.addWidget(self.ok)
+        self.buttons.addWidget(self.cancel)
+
+
+        # Main
+        self.vbox.addWidget(self.titlelabel)
+        self.vbox.addWidget(self.options)
+        self.vbox.addStretch(1)
+        self.vbox.addLayout(self.buttons)
+
+        self.setLayout(self.vbox)
+        self.setWindowTitle('Сгенерировать')
+
+    def isWeek(self):
+        return self.isweek
+
+    def getDay(self):
+        return self.options.currentText()
+
+    @Slot()
+    def weekPush(self):
+        self.isweek = True
+        self.accept()
+
+
+class ShowDayDialog(QDialog):
+    def __init__(self, day, schedules):
+        super(ShowDayDialog, self).__init__()
+
+        self.schedules = schedules
+
+        # Layouts
+        self.buttons = QHBoxLayout()
+        self.mainLayout = QVBoxLayout()
+
+        # Widgets
+        self.scroller = Scroller(range(len(self.schedules)))
+        self.scroller.changed.connect(self.updateDay)
+
+        # Table
+        self.table = MainTable(-1)
+        self.table.columnheaders = [day]
+        self.table.generate(self.table.columnheaders, self.table.rowsheaders)
+        self.table.setColumnWidth(0, 230)
+
+        # Buttons
+        self.ok = QPushButton(languagedict['lang_OKButton'])
+        self.ok.clicked.connect(self.accept)
+        self.cancel = QPushButton(languagedict['lang_CancelButton'])
+        self.cancel.clicked.connect(self.reject)
+
+        self.buttons.addWidget(self.ok)
+        self.buttons.addWidget(self.cancel)
+
+        self.mainLayout.addWidget(self.scroller)
+        self.mainLayout.addWidget(self.table)
+        self.mainLayout.addLayout(self.buttons)
+
+        self.setLayout(self.mainLayout)
+        self.setWindowTitle('Выбор дня')
+        self.setMinimumSize(300, 700)
+
+        self.updateDay(0)
+
+    @Slot(str)
+    def updateDay(self, option):
+        option = int(option)
+        self.showDay(self.schedules[option])
+
+    def showDay(self, schedule):
+        scheduledict = {}
+        for i, value in enumerate(schedule):
+            scheduledict[i] = value
+
+        self.table.setItemsColumn(scheduledict, 0)
+
+    def getDay(self):
+        return int(self.scroller.gettext())
 

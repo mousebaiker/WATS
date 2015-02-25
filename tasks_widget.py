@@ -178,7 +178,6 @@ class TasksWidget(QWidget):
         while child:
             child.widget().deleteLater()
             child = self.mainLayout.takeAt(0)
-        # self.mainLayout.update()
         for group in self.groups:
             groupwidget = TaskGroupWidget(group.getName())
             for task in group:

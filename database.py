@@ -52,6 +52,8 @@ def truncate():
     query.exec_()
     query = QSqlQuery('DELETE FROM status')
     query.exec_()
+    query = QSqlQuery('DELETE FROM evaluation')
+    query.exec_()
 
 
 def dropConnection():

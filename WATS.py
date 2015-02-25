@@ -24,22 +24,21 @@ class Layout(QWidget):
         # Tabs
         self.tab = Tabs()
 
-        ##Calendar init
+        # Calendar init
         self.calendar = QCalendarWidget()
         self.calendar.setMaximumHeight(200)
         self.calendar.selectionChanged.connect(self.tabCheck)
 
-
-        ##Layouts
+        # Layouts
         self.vb = QVBoxLayout()
-        ## Splitters
+        # Splitters
         self.vsplitter = QSplitter()
         self.bottomsplitter = QSplitter(Qt.Vertical)
 
         self.dragging = False
         self.dragtext = ''
 
-        #Keeping track of changed and not currently saved tables
+        # Keeping track of changed and not currently saved tables
         self.notsaved = []
 
     def initTasks(self, statuses):
@@ -108,20 +107,21 @@ class MainWindow(QMainWindow):
         self.connected = False
         self.mainLayout = Layout()
 
-        #Generate the first day of usage
+        # Generate the first day of usage
         today = datetime.date.today()
         dayT = today - datetime.timedelta(today.weekday())
         global_vars.DAYFIRST = dayT
 
+
     def draw(self):
         """Main output function"""
 
-        ## Models should be created after database connection
         self.mainLayout.create()
         self.setCentralWidget(self.mainLayout)
         self.showMaximized()
         self.setWindowTitle('WATS?')
         self.show()
+
 
     def initializeMenu(self):
         """Initializes the main menu and hooks up all the necessary signals"""
@@ -138,7 +138,6 @@ class MainWindow(QMainWindow):
         # Evaluation
         self.evaluateAct = QAction(language.languagedict['lang_evaluateMenuItem'], self)
         self.generateAct = QAction('Сгенерировать расписание', self)
-
 
         self.loadlanguageAct.triggered.connect(self.loadlanguage)
         self.saveAct.triggered.connect(self.save)
@@ -164,9 +163,10 @@ class MainWindow(QMainWindow):
         self.evalmenu = self.menu.addMenu('Оценить')
         self.evalmenu.addAction(self.evaluateAct)
         self.evalmenu.addAction(self.generateAct)
-  #
-  #
-  ## <End> Functions handling  menu buttons signals
+
+    #
+    #
+    # <End> Functions handling  menu buttons signals
 
     def save(self):
         save.save(self.mainLayout)
@@ -177,27 +177,20 @@ class MainWindow(QMainWindow):
     def evaluate(self):
         """Sets up and shows the evaluation of schedule"""
 
-        # self.evWindow = EvaluatorWindow(self.mainLayout.table)
-        #
-        # days = language.languagedict['lang_mainTableHeaders']
-        # self.evWindow.generate(self.mainLayout.taskwidget.groups, days)
-        #
-        # self.evWindow.draw()
-
         evalworker = evaluator.Evaluator(self.mainLayout.tab.currentWidget())
         empty = evalworker.countEmptyPercentforColumns()
         constr = []
         for i in range(len(empty)):
             constr.append(10 - int(empty[i] / 10))
 
-        evald = evaluationDialog(self.mainLayout.tab.currentWidget().getWeeknum(), constr)
+        evald = EvaluationDialog(self.mainLayout.tab.currentWidget().getWeeknum(), constr)
         evald.exec_()
 
     def teachnetwork(self, tasks):
         """Trains the network with evaluation values. Function expects that at least 2 weeks were evaluated"""
         if len(global_vars.EVAL_VALUES) < 2:
             print('Заполните хотя бы 2 недели')
-            return
+            return False
 
         firstlayer = len(tasks) + 1
         self.network = neuron.NeuralNetwork([firstlayer, 5, 1], 0.001)
@@ -214,33 +207,65 @@ class MainWindow(QMainWindow):
                 resultvalues.append([global_vars.EVAL_VALUES[weeknum][i] / 10])
                 self.network.teach(inputvalues, resultvalues, 0.3)
 
+        return True
 
     def generateday(self):
         """Generates a day from two most recent evaluated weeks"""
+        dialog = GenerateDayDialog()
+        dialog.exec_()
+        daystogen = []
+        if dialog.result() == QDialog.Accepted:
+            if dialog.isWeek():
+                daystogen = global_vars.WEEKDAYS
+            else:
+                daystogen.append(
+                    global_vars.WEEKDAYS[language.languagedict['lang_mainTableHeaders'].index(dialog.getDay())])
 
-        groups = self.mainLayout.taskwidget.getGroups()
-        tasks = []
-        for group in groups:
-            for task in group.getTasks():
-                tasks.append(task)
+            groups = self.mainLayout.taskwidget.getGroups()
+            tasks = []
+            for group in groups:
+                for task in group.getTasks():
+                    tasks.append(task)
 
-        self.teachnetwork(tasks)
+            result = self.teachnetwork(tasks)
 
-        weeks = sorted(global_vars.EVAL_VALUES.keys(), reverse=True)[:2]
-        day = [self.mainLayout.tab.getWidgetFromWeeknum(week).getTasksOrdered('Monday') for week in weeks]
-        print(day)
-        tasks_perm = seq_gen.opt_gen_seq(day[0], day[1])
+            if result:
+                for day in daystogen:
+                    weeks = sorted(global_vars.EVAL_VALUES.keys(), reverse=True)[-2:]
+                    daytasks = [self.mainLayout.tab.getWidgetFromWeeknum(week).getTasksOrdered(day) for week in weeks]
+                    print(daytasks)
+                    tasks_perm = seq_gen.opt_gen_seq(daytasks[0], daytasks[1])
 
-        print(len(tasks_perm))
-        inputvalues = []
-        for perm in tasks_perm:
-            inputvalues.append([perm.count(task) / 48 for task in tasks + ['__None__']])
+                    print(len(tasks_perm))
+                    inputvalues = []
+                    for perm in tasks_perm:
+                        inputvalues.append([perm.count(task) / 48 for task in tasks + ['__None__']])
+                    print('Input:', inputvalues[0])
+                    result = self.network.input(inputvalues)
+                    sortresult = sorted(result, reverse=True)
+                    print(result.count(sortresult[2]))
+                    print(tasks_perm[result.index(sortresult[2])])
+                    print(result[0], result[1], result[2])
 
-        result = self.network.input(inputvalues)
-        stresult = sorted(result, reverse=True)
-        print(result.count(stresult[2]))
-        print(tasks_perm[result.index(stresult[2])])
-       
+                    sorttasks_perm = sorted(tasks_perm, key=lambda x: result[tasks_perm.index(x)][0])
+                    dialog = ShowDayDialog(day, sorttasks_perm)
+                    dialog.exec_()
+
+                    if dialog.result() == QDialog.Accepted:
+                        weeknum = max(global_vars.EVAL_VALUES.keys()) + 1
+                        gentable = self.mainLayout.tab.getWidgetFromWeeknum(weeknum)
+                        existing = gentable.getTasks(day)
+                        schedule = sorttasks_perm[dialog.getDay()]
+                        scheduledict = {}
+                        for i in range(len(schedule)):
+                            scheduledict[i] = schedule[i]
+                        self.mainLayout.tab.openTab(weeknum)
+
+                        self.mainLayout.tab.setValues(scheduledict, global_vars.WEEKDAYS.index(day), weeknum)
+                        # TODO Values should not be overwritten
+                        # self.mainLayout.tab.setValues(existing, global_vars.WEEKDAYS.index(day), weeknum)
+
+
 
     def loadlanguage(self):
         """Loads and updates the language of program elements - the language file is chosen via dialog"""
@@ -253,7 +278,7 @@ class MainWindow(QMainWindow):
         """Updates the language of already loaded elements"""
 
         global_vars.WEEKDAYS = language.languagedict['lang_mainTableHeaders']
-        self.mainLayout.table.setHorizontalHeaderLabels(global_vars.WEEKDAYS)
+        self.mainLayout.tab.currentWidget().setHorizontalHeaderLabels(global_vars.WEEKDAYS)
         self.loadlanguageAct.setText(language.languagedict['lang_languageMenuItem'])
         self.saveAct.setText(language.languagedict['lang_saveMenuItem'])
         self.loadAct.setText(language.languagedict['lang_loadMenuItem'])

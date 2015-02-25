@@ -41,11 +41,11 @@ class Tabs(QTabWidget):
         wasopened = True
         if weeknum not in self.weeksopened:
             self.openTab(weeknum)
-            wasopened = False
-            if not wasopened:
-                self.mainLayout.tab.closeWeek(weeknum)
-
-        return self.widget(self.weeksopened.index(weeknum))
+            widget = self.widget(self.weeksopened.index(weeknum))
+            self.closeWeek(weeknum)
+        else:
+            widget = self.widget(self.weeksopened.index(weeknum))
+        return widget
 
     def getWeeksOpened(self):
         return self.weeksopened
