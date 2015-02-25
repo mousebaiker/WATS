@@ -15,6 +15,7 @@ def save(layout):
 
     # Create a file if there is no previous save
     # else move db to current folder to save
+
     if not os.path.isfile(paths.savePath):
         # Create txt and write down the first day of usage
         savefile = open(paths.savePath, mode='w')
@@ -67,7 +68,6 @@ def save(layout):
                 query.exec_(request)
     layout.tab.notsaved = []
 
-
     # Saving evaluation values
     for week in global_vars.EVAL_VALUES.keys():
         val = str(week) + ', '
@@ -77,6 +77,37 @@ def save(layout):
         query = QSqlQuery()
         query.exec_(request)
 
+    # Saving neural network weights
+    parent = layout.parentWidget()
+    exists = True
+    try:
+        parent.network
+    except (AttributeError, NameError):
+        exists = False
+
+    if exists:
+        hdw = parent.network.hiddenweights
+        otpw = parent.network.outputweights
+
+        request = 'INSERT INTO weights (input, output, value) '
+        for i in range(len(hdw)):
+            for j in range(len(hdw[i])):
+                if (i == 0) and (j == 0):
+                    request += 'SELECT ' + '"in_' + str(i) + '", "hidden_' + str(j) + '", ' + str(hdw[i][j])
+                else:
+                    request += ' UNION ALL'
+                    request += ' SELECT ' + '"in_' + str(i) + '", "hidden_' + str(j) + '", ' + str(hdw[i][j])
+
+        for i in range(len(otpw)):
+            for j in range(len(otpw[i])):
+                request += ' UNION ALL'
+                request += ' SELECT ' + '"hidden_' + str(i) + '", "out_' + str(j) + '", ' + str(hdw[i][j])
+
+        print(request)
+
+        query = QSqlQuery()
+        query.exec_(request)
+        print(query.lastError())
     print('Saved')
     # Restoring the original state
     database.dropConnection()

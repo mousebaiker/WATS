@@ -40,7 +40,11 @@ def setConnection(name, username=0, password=0):
 
     q_eval = 'CREATE TABLE evaluation(week integer, ' + days[:-2] + ')'
     query.exec_(q_eval)
+
+    q_weights = 'CREATE TABLE weights(input varchar, output varchar, value numeric)'
+    query.exec_(q_weights)
     return True
+
 
 
 def truncate():
@@ -54,7 +58,8 @@ def truncate():
     query.exec_()
     query = QSqlQuery('DELETE FROM evaluation')
     query.exec_()
-
+    query = QSqlQuery('DELETE FROM weights')
+    query.exec_()
 
 def dropConnection():
     """Kills connection - allowing to move db file"""
